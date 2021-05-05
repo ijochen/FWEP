@@ -1,17 +1,17 @@
 
-CREATE FUNCTION warehouse.upsert_front_counter()  RETURNS void AS $$
+CREATE FUNCTION warehouse.upsert_picking_and_shipping_stripped()  RETURNS void AS $$
 begin
 	
 	-- Delete
-	delete from warehouse.front_counter_fwp
+	delete from warehouse.picking_and_shipping_stripped_fwp
 	where ol_order_no in (
 		select distinct ol_order_no
-		from warehouse.front_counter_fwp_INCREMENTAL
+		from warehouse.picking_and_shipping_stripped_fwp_incremental
 	);
 	
 	-- Reinsert 
-	insert into warehouse.front_counter_fwp
-	select * from warehouse.front_counter_fwp_INCREMENTAL;
+	insert into warehouse.picking_and_shipping_stripped_fwp
+	select * from warehouse.picking_and_shipping_stripped_fwp_INCREMENTAL;
 	
 END ;
 $$

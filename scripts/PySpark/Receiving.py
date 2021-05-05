@@ -48,6 +48,7 @@ erp_query = """(
     where  
         (bin like '%REC%' or bin like '%SHIP%')
 )"""
+
 ss_df = spark.read.format("jdbc") \
    .option("url", erp_url) \
    .option("query", erp_query) \

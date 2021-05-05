@@ -28,7 +28,7 @@ job.init(args['JOB_NAME'], args)
 erp_url = "jdbc:sqlserver://128.1.100.9:1433;databaseName=CommerceCenter"
 erp_query = """(
    select 
-        trh.transfer_no,
+        cast(trh.transfer_no as varchar) trh_transfer_no,
         transfer_date, 
         unit_quantity, 
         qty_to_transfer, 
@@ -36,9 +36,9 @@ erp_query = """(
         avg(fi.cost) avg_fifo_cost,
         item_id, 
         item_desc,
-        from_location_id, 
+        cast(from_location_id as varchar) from_location_id, 
         flo.location_name from_location, 
-        to_location_id, 
+        cast(to_location_id as varchar) to_location_id, 
         tlo.location_name to_location, 
         planned_recpt_date, 
         trh.created_by hdr_created_by, 
@@ -49,7 +49,7 @@ erp_query = """(
     left join CommerceCenter.dbo.location tlo on trh.to_location_id = tlo.location_id
     left join CommerceCenter.dbo.inv_mast im on trl.inv_mast_uid = im.inv_mast_uid
     left join CommerceCenter.dbo.fifo_layers fi on im.inv_mast_uid = fi.inv_mast_uid
-    where year(transfer_date) > '2020'
+    where year(transfer_date) >= '2020'
     group by 
         trh.transfer_no,
         transfer_date, 
