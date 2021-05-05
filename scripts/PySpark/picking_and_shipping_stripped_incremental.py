@@ -4,7 +4,6 @@ from awsglue.utils import getResolvedOptions
 from pyspark.context import SparkContext
 from awsglue.context import GlueContext
 from awsglue.job import Job
-
 import logging
 
 MSG_FORMAT = '%(asctime)s %(levelname)s %(name)s: %(message)s'
@@ -53,7 +52,7 @@ erp_query = """(
 			distinct key1_value 
 		   from dbo.audit_trail WITH (NOLOCK) 
 		   where key1_cd = 'order_no' 
-		   --and date_created >= DATEADD(day,-30, GETDATE()) 
+		   and date_created >= DATEADD(day,-1, GETDATE()) 
       )
 )"""
 
@@ -67,27 +66,27 @@ erp_df = spark.read.format("jdbc") \
 mode = "overwrite"
 url = "jdbc:postgresql://db-cluster.cluster-ce0xsttrdwys.us-east-2.rds.amazonaws.com:5432/analytics"
 properties = {"user": "postgres","password": "kHSmwnXWrG^L3N$V2PXPpY22*47","driver": "org.postgresql.Driver"}
-erp_df.write.jdbc(url=url, table="warehouse.front_counter_fwp", mode=mode, properties=properties)
+erp_df.write.jdbc(url=url, table="warehouse.front_counter_fwp_INCREMENTAL", mode=mode, properties=properties)
 
 
 # 3) Merge tables together in a stored proc
-# import pg8000
+import pg8000
 
-# conn = pg8000.connect(
-#     database='analytics',
-#     user='postgres',
-#     password='kHSmwnXWrG^L3N$V2PXPpY22*47',
-#     host='db-cluster.cluster-ce0xsttrdwys.us-east-2.rds.amazonaws.com',
-#     port=5432
-# )
+conn = pg8000.connect(
+    database='analytics',
+    user='postgres',
+    password='kHSmwnXWrG^L3N$V2PXPpY22*47',
+    host='db-cluster.cluster-ce0xsttrdwys.us-east-2.rds.amazonaws.com',
+    port=5432
+)
 
-# query = "select warehouse.upsert_front_counter()"
-# cur = conn.cursor()
-# cur.execute(query)
-# conn.commit()
-# cur.close()
+query = "select warehouse.upsert_front_counter()"
+cur = conn.cursor()
+cur.execute(query)
+conn.commit()
+cur.close()
 
-# conn.close()
+conn.close()
 
 
 job.commit()
