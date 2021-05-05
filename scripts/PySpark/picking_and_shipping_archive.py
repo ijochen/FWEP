@@ -25,9 +25,9 @@ logger.setLevel(logging.INFO)
 
 
 logger.info("******** START READING FWP *************")
-erp_url = "jdbc:sqlserver://172.31.1.227:1433;databaseName=CommerceCenter"
+erp_url = "jdbc:sqlserver://128.1.100.9:1433;databaseName=CommerceCenter"
 erp_query = """
-	select 
+	select
 	    -- General order info 
 			ol.order_no as ol_order_no, -- order_number
 			ol.line_no as ol_line_no,	 -- order_line
@@ -73,14 +73,14 @@ erp_query = """
 			distinct key1_value 
 		from dbo.audit_trail WITH (NOLOCK) 
 		where key1_cd = 'order_no' 
-        --and date_created >= DATEADD(day,-30, GETDATE()) 
+            --and date_created >= DATEADD(day,-30, GETDATE()) 
 	)
 """
 erp_order_lines_df = spark.read.format("jdbc") \
     .option("url", erp_url) \
     .option("query", erp_query) \
-    .option("user", "pwales") \
-    .option("password", "Bi4437j!") \
+    .option("user", "ichen") \
+    .option("password", "Qwer1234$") \
     .load()
 
 
@@ -110,7 +110,7 @@ erp_ship_query = """
 					distinct key1_value 
 				from dbo.audit_trail WITH (NOLOCK) 
 				where key1_cd = 'order_no' 
-                --and date_created >= DATEADD(day,-30, GETDATE()) 
+                    --and date_created >= DATEADD(day,-30, GETDATE()) 
 			)
 	) a 
 	left join dbo.users u WITH (NOLOCK)
@@ -143,7 +143,7 @@ erp_pick_query = """
 					distinct key1_value 
 				from dbo.audit_trail WITH (NOLOCK) 
 				where key1_cd = 'order_no' 
-                --and date_created >= DATEADD(day,-30, GETDATE())
+                    --and date_created >= DATEADD(day,-30, GETDATE())
 			)
 	) a 
 	left join dbo.users u WITH (NOLOCK)
@@ -156,6 +156,7 @@ erp_print_date_query = """
         t.pick_ticket_no,
         t.order_no,
         td.oe_line_no,
+        t.invoice_no,
         t.print_date,
         t.delete_flag,
         td.print_quantity,
@@ -168,7 +169,7 @@ erp_print_date_query = """
             distinct key1_value 
         from dbo.audit_trail WITH (NOLOCK)
         where key1_cd = 'order_no' 
-        --and date_created >= DATEADD(day, -30, GETDATE())
+            --and date_created >= DATEADD(day, -30, GETDATE())
     ) and t.delete_flag = 'N'
 """
 
@@ -176,22 +177,22 @@ erp_print_date_query = """
 erp_ship_df = spark.read.format("jdbc") \
     .option("url",  erp_url) \
     .option("query", erp_ship_query) \
-    .option("user", "pwales") \
-    .option("password", "Bi4437j!") \
+    .option("user", "ichen") \
+    .option("password", "Qwer1234$") \
     .load() 
 
 erp_pick_df = spark.read.format("jdbc") \
     .option("url",  erp_url) \
     .option("query", erp_pick_query) \
-    .option("user", "pwales") \
-    .option("password", "Bi4437j!") \
+    .option("user", "ichen") \
+    .option("password", "Qwer1234$") \
     .load()
     
 erp_print_date_df = spark.read.format("jdbc") \
     .option("url",  erp_url) \
     .option("query", erp_print_date_query) \
-    .option("user", "pwales") \
-    .option("password", "Bi4437j!") \
+    .option("user", "ichen") \
+    .option("password", "Qwer1234$") \
     .load()
 
 
@@ -217,7 +218,8 @@ joined_df = erp_order_lines_df \
         erp_pick_df["picker"], \
         erp_print_date_df["pick_ticket_no"], \
         erp_print_date_df["print_date"], \
-        erp_print_date_df["print_quantity"]
+        erp_print_date_df["print_quantity"], \
+        erp_print_date_df["invoice_no"], \
     )
 
 mode = "overwrite"
