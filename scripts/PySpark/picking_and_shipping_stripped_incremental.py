@@ -70,6 +70,7 @@ erp_print_date_query = """
         td.oe_line_no,
         t.invoice_no,
         t.print_date,
+        t.ship_date,
         t.delete_flag,
         td.print_quantity,
 		row_number() over (partition by t.order_no, td.oe_line_no order by t.print_date asc) as row_num
@@ -101,6 +102,7 @@ joined_df = erp_order_lines_df \
         erp_order_lines_df["*"], \
         erp_print_date_df["pick_ticket_no"], \
         erp_print_date_df["print_date"], \
+        erp_print_date_df["ship_date"], \
         erp_print_date_df["print_quantity"], \
         erp_print_date_df["invoice_no"], \
     )
