@@ -40,8 +40,10 @@ erp_query = """
 			ol.disposition as ol_disposition, -- order_disposition (out of stock - B backorder, T transfer, ..)
 			oh.completed as oh_completed,
 			oh.projected_order as oh_projected_order,
+			oh.will_call as oh_will_call,
 			oh.source_location_id as oh_shipping_location,
-            oh.will_call as oh_will_call,
+			ol.source_loc_id as ol_source_location,
+			ol.ship_loc_id as ol_shipping_location,
 			
 		-- Shipping
 			oh.customer_id as customer_id,
