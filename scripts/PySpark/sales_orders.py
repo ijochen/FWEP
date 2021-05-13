@@ -63,8 +63,9 @@ erp_query = """(
    from p21_sales_history_report_view v
    left join dbo.invoice_hdr h 
         on v.invoice_no = h.invoice_no
-   where year(v.invoice_date) >= 2019
+   where v.invoice_date >= DATEADD(day,-30, GETDATE())
 )"""
+
 ss_df = spark.read.format("jdbc") \
    .option("url", erp_url) \
    .option("query", erp_query) \
@@ -75,7 +76,7 @@ ss_df = spark.read.format("jdbc") \
 mode = "overwrite"
 url = "jdbc:postgresql://db-cluster.cluster-ce0xsttrdwys.us-east-2.rds.amazonaws.com:5432/analytics"
 properties = {"user": "postgres","password": "kHSmwnXWrG^L3N$V2PXPpY22*47","driver": "org.postgresql.Driver"}
-ss_df.write.jdbc(url=url, table="sales.fwp_invoice_data", mode=mode, properties=properties)
+ss_df.write.jdbc(url=url, table="sales.fwp_invoice_data_incremental", mode=mode, properties=properties)
 
 
 logger.info("******** END READING FWP *************")
@@ -98,9 +99,16 @@ cur.execute(query)
 conn.commit()
 cur.close()
 
-queryTwo = "select sales.load_invoices()"
+
+queryTwo = "select sales.upsert_fwp_invoices()"
 cur = conn.cursor()
 cur.execute(queryTwo)
+conn.commit()
+cur.close()
+
+queryThree = "select sales.load_invoices()"
+cur = conn.cursor()
+cur.execute(queryThree)
 conn.commit()
 cur.close()
 
