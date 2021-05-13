@@ -63,7 +63,8 @@ erp_query = """(
    from p21_sales_history_report_view v
    left join dbo.invoice_hdr h 
         on v.invoice_no = h.invoice_no
-   where v.invoice_date >= DATEADD(day,-30, GETDATE())
+   where v.invoice_date >= DATEADD(day,-30, GETDATE()) 
+      and gl_revenue_account_no <> '29300000'
 )"""
 
 ss_df = spark.read.format("jdbc") \
