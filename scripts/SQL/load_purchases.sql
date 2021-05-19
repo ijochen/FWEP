@@ -1,4 +1,4 @@
-
+--DROP FUNCTION procurement.load_purchases()
 
 CREATE FUNCTION procurement.load_purchases() RETURNS void AS $$
 BEGIN   
@@ -7,8 +7,7 @@ BEGIN
     CREATE TABLE procurement.purchase_orders_merged AS
     select * 
     from (
-        (select * from procurement.fwp_purchase_orders
-        )
+        (select * from procurement.fwp_purchase_orders)
     UNION
         (SELECT * from procurement.pep_purchase_orders)
     ) a;
