@@ -54,7 +54,7 @@ pep_query = """(
     left join Prelude.dbo.SSProduct p on pl.PROD_NUM = p.PROD_NUM
     left join Prelude.dbo.ssVEND_NF v on ph.VEND_NUM = v.VEND_NUM and ph.CO_NUM = v.CO_NUM
     left join Prelude.dbo.BUYER_NF b on ph.BUYER_NUM = b.BUYER_NUM
-    where pl.PROD_NUM not in ('C','CSB') and year(ph.PO_DATE) >= 2019
+    where pl.PROD_NUM not in ('C','CSB') and ph.PO_DATE >= dateadd(day,-30,getdate())
     group by ph.PO_TYPE, ph.PO_NUM, pl.SEQ_NUM,
         ph.VEND_NUM, v.VEND_DESC, ph.BUYER_NUM, b.BUYER_DESC,
         pl.PROD_NUM, p.PROD_DESC1,
@@ -110,7 +110,7 @@ fwp_query = """(
     left join CommerceCenter.dbo.po_line pl on ph.po_no = pl.po_no
     left join CommerceCenter.dbo.vendor v on ph.vendor_id = v.vendor_id
     left join CommerceCenter.dbo.inv_mast i on pl.inv_mast_uid = i.inv_mast_uid
-    where year(ph.order_date) >= 2019
+    where ph.order_date >= dateadd(day,-30,getdate())
     group by ph.po_type, ph.po_no, pl.line_no, 
         ph.vendor_id, v.vendor_name, pl.created_by, 
         i.item_id, pl.item_description, 
