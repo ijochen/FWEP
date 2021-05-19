@@ -40,15 +40,15 @@ pep_query = """(
         case when b.BUYER_DESC is null then ph.BUYER_NUM else b.BUYER_DESC end buyer,
         pl.PROD_NUM,
         p.PROD_DESC1,
-        pl.ORD_QTY,
-        pl.REC_QTY,
+        cast(pl.ORD_QTY as float) ORD_QTY,
+        cast(pl.REC_QTY as float) REC_QTY,
         pl.GRS_COST,
         pl.EXT_AMT,
         ph.CENTRAL_WHSE_NUM,
         pl.WHSE_NUM,
-        ph.PO_DATE,
-        ph.REC_DATE,
-        pl.DEL_DATE
+        cast(ph.PO_DATE as date) PO_DATE,
+        cast(ph.REC_DATE as date) REC_DATE,
+        cast(pl.DEL_DATE as date) DEL_DATE
     from Prelude.dbo.PO_HISTORY_LINE_IJO pl
     left join Prelude.dbo.PO_HISTORY_IJO ph on substring(pl.ID,1,13) = ph.ID
     left join Prelude.dbo.SSProduct p on pl.PROD_NUM = p.PROD_NUM
@@ -91,18 +91,17 @@ fwp_query = """(
         'FWP' as company,
         ph.po_type, 
         cast(ph.po_no as varchar) po_no,
-        pl.line_no,
-        concat(ph.po_no,'-',pl.line_no) order_id,
-        ph.vendor_id, 
+        cast(pl.line_no as varchar) line_no,
+        cast(ph.vendor_id as varchar) vendor_id, 
         v.vendor_name,
         replace(pl.created_by, 'FWPNET\', '') buyer,
         i.item_id,
         pl.item_description,
-        cast(pl.qty_ordered as varchar) qty_ordered,
-        cast(pl.qty_received as varchar) qty_received,
+        cast(pl.qty_ordered as float) qty_ordered,
+        cast(pl.qty_received as float) qty_received,
         pl.unit_price,
         (pl.unit_price * pl.qty_ordered) ext_price,
-        ph.location_id,
+        cast(ph.location_id as varchar) location_id,
         ph.branch_id,
         cast(ph.order_date as date) order_date,
         cast(ph.receipt_date as date) receipt_date,
@@ -135,39 +134,6 @@ fwp_df.write.jdbc(url=url, table="procurement.fwp_purchase_orders", mode=mode, p
 
 
 logger.info("******** END READING FWP *************")
-
-
-# 3) Merge tables together in a stored proc
-# import pg8000
-
-# conn = pg8000.connect(
-#     database='analytics',
-#     user='postgres',
-#     password='kHSmwnXWrG^L3N$V2PXPpY22*47',
-#     host='db-cluster.cluster-ce0xsttrdwys.us-east-2.rds.amazonaws.com',
-#     port=5432
-# )
-
-# query = "select procurement.upsert_pep_purchases()"
-# cur = conn.cursor()
-# cur.execute(query)
-# conn.commit()
-# cur.close()
-
-
-# queryTwo = "select procurement.upsert_fwp_purchases()"
-# cur = conn.cursor()
-# cur.execute(queryTwo)
-# conn.commit()
-# cur.close()
-
-# queryThree = "select procurement.load_purchases()"
-# cur = conn.cursor()
-# cur.execute(queryThree)
-# conn.commit()
-# cur.close()
-
-# conn.close()
 
 
 job.commit()
