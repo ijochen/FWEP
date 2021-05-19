@@ -94,7 +94,7 @@ fwp_query = """(
         cast(pl.line_no as varchar) line_no,
         cast(ph.vendor_id as varchar) vendor_id, 
         v.vendor_name,
-        replace(pl.created_by, 'FWPNET\', '') buyer,
+        replace(pl.created_by, 'FWPNET\\', '') buyer,
         i.item_id,
         pl.item_description,
         cast(pl.qty_ordered as float) qty_ordered,
