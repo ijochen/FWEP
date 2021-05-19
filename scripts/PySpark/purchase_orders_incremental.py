@@ -160,13 +160,13 @@ cur.execute(queryTwo)
 conn.commit()
 cur.close()
 
-# queryThree = "select procurement.load_purchases()"
-# cur = conn.cursor()
-# cur.execute(queryThree)
-# conn.commit()
-# cur.close()
+queryThree = "select procurement.load_purchases()"
+cur = conn.cursor()
+cur.execute(queryThree)
+conn.commit()
+cur.close()
 
-# conn.close()
+conn.close()
 
 
 job.commit()
