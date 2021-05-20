@@ -37,8 +37,7 @@ begin
 		from warehouse.inv_transactions
 		where 
 			quantity > 0 and 
-			date_created >= start_date_var and 
-			location_id = 140
+			date_created >= start_date_var 
 		order by date_created desc;
 
 		-- Out refs
@@ -56,8 +55,7 @@ begin
 		from warehouse.inv_transactions
 		where  
 			quantity < 0 and 
-			date_created >= start_date_var and 
-			location_id = 140
+			date_created >= start_date_var 
 		order by date_created desc;
 	end;
 

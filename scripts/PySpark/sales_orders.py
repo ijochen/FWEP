@@ -64,7 +64,7 @@ erp_query = """(
    left join dbo.invoice_hdr h 
         on v.invoice_no = h.invoice_no
    where v.invoice_date >= DATEADD(day,-30, GETDATE()) 
-      and gl_revenue_account_no <> '29300000'
+      and gl_revenue_account_no like '4000%'
 )"""
 
 ss_df = spark.read.format("jdbc") \

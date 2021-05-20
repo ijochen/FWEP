@@ -60,9 +60,31 @@ begin
 			order_no,
 			invoice_no,
 			cast(invoice_date as timestamp) as invoice_date,
+            --rename the branches to proper case to prevent random aliases in tableau workbook
 			case 
                 when branch_description = 'APS - HENDERSON NV' then 'Henderson'
+                when branch_description = 'APS - LA COSTA NV' then 'La Costa'
+                when branch_description = 'APS - MEADE NV' then 'Meade'
+                when branch_description = 'APS - ST GEORGE UT' then 'St. George'
+                
+                when branch_description = 'FWP - AUSTIN TX' then 'Austin (FWP)'
+                when branch_description = 'FWP - BONITA SPRINGS FL' then 'Naples'
+                when branch_description = 'FWP - CONROE TX' then 'Conroe'
+                when branch_description = 'FWP - FORT WORTH TX' then 'Fort Worth'
+                when branch_description = 'FWP - FULFILLMENT' then 'Fulfillment'
+                when branch_description = 'FWP - KATY TX' then 'Katy'
+                when branch_description = 'FWP - MELBOURNE FL' then 'Melbourne'
+                when branch_description = 'FWP - NORTH MIAMI FL' then 'North Miami'
+                when branch_description = 'FWP - PLANO TX' then 'Plano'
+                when branch_description = 'FWP - PORT CHARLOTTE FL' then 'Port Charlotte'
                 when branch_description = 'FWP - SAN ANTONIO TX' then 'San Antonio (FWP)'
+                when branch_description = 'FWP - SARASOTA FL' then 'Sarasota'
+                when branch_description = 'FWP - SPRINGHILL FL' then 'Spring Hill'
+                when branch_description = 'FWP - TAMPA FL' then 'Tampa'
+                when branch_description = 'FWP - WEST PALM BEACH FL' then 'West Palm Beach'
+
+                when branch_description = 'WARRANTY APS' then 'Warranty American'
+                when branch_description = 'WARRANTY FWP' then 'Warranty West Coast'
                     else branch_description end branch_description,
 			cast(order_date as timestamp) as order_date,
 			max(total_sales)-max(freight)-max(tax_amount) as total_sales,
