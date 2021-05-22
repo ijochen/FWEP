@@ -3,8 +3,6 @@
 
 --drop function warehouse.load_receiving()
 
-
-
 CREATE FUNCTION warehouse.load_receiving()  RETURNS void AS $$
 begin
 	 

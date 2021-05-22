@@ -27,7 +27,7 @@ job.init(args['JOB_NAME'], args)
 
 erp_url = "jdbc:sqlserver://128.1.100.9:1433;databaseName=CommerceCenter"
 erp_query = """(
-   select 
+   select distinct
         t.location_id, 
         l.location_name, 
         t.bin, 
@@ -45,8 +45,17 @@ erp_query = """(
         on t.location_id = l.location_id
     left join dbo.inventory_receipts_hdr irl 
         on t.transaction_number = irl.receipt_number
-    where  
-        (bin like '%REC%' or bin like '%SHIP%')
+    where year(t.date_created) = '2021'
+    group by t.location_id, 
+        l.location_name, 
+        t.bin, 
+        t.transaction_number,
+        t.quantity,
+        t.date_created,
+        t.inv_mast_uid,
+        i.item_id,
+        i.item_desc,
+        irl.po_number
 )"""
 
 ss_df = spark.read.format("jdbc") \
