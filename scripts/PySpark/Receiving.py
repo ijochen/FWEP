@@ -45,7 +45,7 @@ erp_query = """(
         on t.location_id = l.location_id
     left join dbo.inventory_receipts_hdr irl 
         on t.transaction_number = irl.receipt_number
-    where t.location_id in ('140','60','10','330','331') and year(t.date_created) >= 2020
+    where t.location_id in ('140','60','10','330','331') and t.date_created >= dateadd(day,-30,getdate())
     group by t.location_id, 
         l.location_name, 
         t.bin, 
