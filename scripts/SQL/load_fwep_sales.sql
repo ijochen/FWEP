@@ -1,11 +1,11 @@
 CREATE FUNCTION sales.load_fwep_sales() RETURNS void AS $$
-begin
+BEGIN
     DROP TABLE IF EXISTS sales.fwep_sales_data_merged;
     
     CREATE TABLE sales.fwep_sales_data_merged AS
-    SELECT * 
+    SELECT DISTINCT * 
     FROM (
-        (SELECT 
+        (SELECT DISTINCT
             company,
             customer_id,
             customer_name,
@@ -38,7 +38,7 @@ begin
 
         UNION
 
-        (SELECT 
+        (SELECT DISTINCT
             "company",
             "CUST_NUM" customer_id,
             "CUST_DESC" customer_name,
