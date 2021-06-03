@@ -30,9 +30,7 @@ BEGIN
             sales_location_name,
             branch_id,
             branch_location_name,
-            month,
-            month_name,
-            day
+            month_name
         FROM sales.fwp_sales
         )
 
@@ -63,9 +61,7 @@ BEGIN
             "SEL_WHSE_NAME" sales_location_name,
             "WHSE_NUM" branch_id,
             "WHSE_NAME" branch_location_name,
-            "MONTH" month,
-            "MONTH_NAME" month_name,
-            "DAY" day
+            "MONTH_NAME" month_name
         FROM sales.pep_sales
         )
     ) a;
