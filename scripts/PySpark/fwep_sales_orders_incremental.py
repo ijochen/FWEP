@@ -155,7 +155,7 @@ pep_df = spark.read.format("jdbc") \
 mode = "overwrite"
 url = "jdbc:postgresql://db-cluster.cluster-ce0xsttrdwys.us-east-2.rds.amazonaws.com:5432/analytics"
 properties = {"user": "postgres","password": "kHSmwnXWrG^L3N$V2PXPpY22*47","driver": "org.postgresql.Driver"}
-pep_df.write.jdbc(url=url, table="sales.pep_sales", mode=mode, properties=properties)
+pep_df.write.jdbc(url=url, table="sales.pep_sales_incremental", mode=mode, properties=properties)
 
 
 logger.info("******** END READING PEP *************")
@@ -288,7 +288,7 @@ fwp_df = spark.read.format("jdbc") \
 mode = "overwrite"
 url = "jdbc:postgresql://db-cluster.cluster-ce0xsttrdwys.us-east-2.rds.amazonaws.com:5432/analytics"
 properties = {"user": "postgres","password": "kHSmwnXWrG^L3N$V2PXPpY22*47","driver": "org.postgresql.Driver"}
-fwp_df.write.jdbc(url=url, table="sales.fwp_sales", mode=mode, properties=properties)
+fwp_df.write.jdbc(url=url, table="sales.fwp_sales_incremental", mode=mode, properties=properties)
 
 
 logger.info("******** END READING FWP *************")
