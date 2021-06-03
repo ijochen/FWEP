@@ -2,7 +2,7 @@
 
 CREATE FUNCTION procurement.load_purchases() RETURNS void AS $$
 BEGIN   
-    DROP TABLE IF EXISTS procurement.purchase_orders_merged;
+    DROP TABLE IF EXISTS procurement.fwep_purchase_data_merged;
 
     CREATE TABLE procurement.fwep_purchase_data_merged AS
     SELECT DISTINCT * 
