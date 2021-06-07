@@ -3,7 +3,7 @@ BEGIN
     DROP TABLE IF EXISTS sales.fwep_sales_data_merged;
     
     CREATE TABLE sales.fwep_sales_data_merged AS
-    SELECT DISTINCT * 
+    SELECT * 
     FROM (
         (SELECT DISTINCT
             company,
