@@ -3,17 +3,20 @@ BEGIN
     DROP TABLE IF EXISTS sales.fwep_sales_data_merged;
     
     CREATE TABLE sales.fwep_sales_data_merged AS
-    SELECT * 
+    SELECT DISTINCT * 
     FROM (
         (SELECT DISTINCT
             company,
             customer_id,
             customer_name,
+            customer_city,
+            customer_state,
             order_date,
             order_no,
             line_no,
-            item_id,
-            item_desc,
+            prod_num,
+            prod_desc,
+            prod_group,
             qty_ordered,
             qty_shipped,
             unit_price,
@@ -21,8 +24,8 @@ BEGIN
             profit_amount, 
             cogs_amount, 
             tax_amount,
-            amount_paid paid_amount,
-            total_amount invoice_amount,
+            paid_amount,
+            invoice_amount,
             invoice_date,
             invoice_no,
             gl_revenue_account_no,
@@ -40,11 +43,14 @@ BEGIN
             "company",
             "CUST_NUM" customer_id,
             "CUST_DESC" customer_name,
+            "CUST_CITY" customer_city,
+            "CUST_STATE" customer_state,
             "ORD_DATE" order_date,
             "ORD_NUM" order_no,
             "LINE_NUM" line_no,
-            "SKU" item_id,
-            "PROD_DESC" item_desc,
+            "PROD_NUM" prod_num,
+            "PROD_DESC" prod_desc,
+            "PROD_GROUP" prod_group,
             "ORD_QTY" qty_ordered,
             "SHP_QTY" qty_shipped,
             "NET_PRICE" unit_price,

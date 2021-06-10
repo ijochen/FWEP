@@ -33,12 +33,15 @@ pep_query = """(
     select distinct
         'PEP' as company,
         t3.CUST_NUM, 
-        min(c.CUST_DESC) CUST_DESC,
+        max(cu.CUST_DESC) CUST_DESC,
+        max(cu.CITY) CUST_CITY,
+        max(cu.STATE) CUST_STATE,
         cast(t3.ORD_DATE as datetime) ORD_DATE, 
         t3.ORD_NUM, 
         t1.SEQ_NUM LINE_NUM, 
-        t1.PROD_NUM SKU, 
-        min(p.PROD_DESC1) PROD_DESC,
+        t1.PROD_NUM, 
+        p.PROD_DESC1 PROD_DESC,
+        ca.PLINE_DESC PROD_GROUP,
         cast(t1.ORD_QTY as float) ORD_QTY, 
         cast(t1.SHP_QTY as float) SHP_QTY, 
         t1.NET_PRICE, 
@@ -82,6 +85,9 @@ pep_query = """(
             when t3.SEL_WHSE = '27' then 'Tempe'
             when t3.SEL_WHSE = '28' then 'Phoenix'
             when t3.SEL_WHSE = '29' then 'Santa Ana'
+            when t3.SEL_WHSE = '30' then 'El Centro'
+            when t3.SEL_WHSE = '98' then 'Corporate Warehouse'
+            when t3.SEL_WHSE = '99' then 'Central Shipping Warehouse'
                 else t3.SEL_WHSE end SEL_WHSE_NAME,
         t1.WHSE_NUM,
         case 
@@ -114,35 +120,39 @@ pep_query = """(
             when t1.WHSE_NUM = '27' then 'Tempe'
             when t1.WHSE_NUM = '28' then 'Phoenix'
             when t1.WHSE_NUM = '29' then 'Santa Ana'
+            when t1.WHSE_NUM = '30' then 'El Centro'
+            when t1.WHSE_NUM = '98' then 'Corporate Warehouse'
+            when t1.WHSE_NUM = '99' then 'Central Shipping Warehouse'
                 else t1.WHSE_NUM end WHSE_NAME,
-        month(t3.INV_DATE) MONTH, 
-        datename(month,t3.INV_DATE) MONTH_NAME, 
-        day(t3.INV_DATE) DAY
-    from Prelude.dbo.ORDER_HISTORY_LINE_IJO_1 t1 
-    left join Prelude.dbo.ORDER_HIST_LINE_KEY__MV_SUB t2 on t1.ID = t2.LINE_KEY
-    left join Prelude.dbo.ORDER_HISTORY_IJO t3 on t2.ID = t3.ID
-    left join Prelude.dbo.PEPCustomer c on t3.CUST_NUM = c.CUST_NUM
-    left join Prelude.dbo.SSProduct p on t1.PROD_NUM = p.PROD_NUM
-    where INV_DATE >= dateadd(day,-30,getdate()) and t1.PROD_NUM not in ('C','CSB','CS','CI','CN','MN') and c.CUST_NUM not like '%CLOSED'
-    group by 
-        t3.CUST_NUM, 
-        t3.ORD_DATE, 
-        t3.ORD_NUM, 
-        t1.SEQ_NUM, 
-        t1.PROD_NUM, 
-        t1.ORD_QTY, 
-        t1.SHP_QTY, 
-        t1.NET_PRICE, 
-        t1.LINE_EXT,
-        t1.PROFIT_EXT, 
-        t1.NET_COST_EXT, 
-        t3.TOT_ORD_DOL,
-        t3.INV_AMT,
-        t3.INV_DATE, 
-        t3.INV_NUM,
-        t1.MISC_GL,
-        t3.SEL_WHSE, 
-        t1.WHSE_NUM
+        datename(month,t3.INV_DATE) MONTH_NAME
+        from Prelude.dbo.ORDER_HISTORY_LINE_IJO_1 t1 
+        left join Prelude.dbo.ORDER_HIST_LINE_KEY__MV_SUB t2 on t1.ID = t2.LINE_KEY
+        left join Prelude.dbo.ORDER_HISTORY_IJO t3 on t2.ID = t3.ID
+        left join Prelude.dbo.CUSTOMER_IJO cu on t3.CUST_NUM = cu.CUST_NUM
+        left join Prelude.dbo.SSProduct p on t1.PROD_NUM = p.PROD_NUM
+        left join Prelude.dbo.CATEGORY_IJO ca on p.PLINE_NUM = ca.PLINE_NUM
+        where INV_DATE >= dateadd(day,-30,getdate()) and t1.PROD_NUM not in ('C','CSB','CS','CI','CN','CP','MN') and cu.CUST_NUM not like '%CLOSED' and p.CO_NUM = '001' and ca.CO_NUM = '001'
+        group by 
+            t3.CUST_NUM,
+            t3.ORD_DATE, 
+            t3.ORD_NUM, 
+            t1.SEQ_NUM, 
+            t1.PROD_NUM, 
+            p.PROD_DESC1,
+            ca.PLINE_DESC,
+            t1.ORD_QTY, 
+            t1.SHP_QTY, 
+            t1.NET_PRICE, 
+            t1.LINE_EXT,
+            t1.PROFIT_EXT, 
+            t1.NET_COST_EXT, 
+            t3.TOT_ORD_DOL,
+            t3.INV_AMT,
+            t3.INV_DATE, 
+            t3.INV_NUM,
+            t1.MISC_GL,
+            t3.SEL_WHSE, 
+            t1.WHSE_NUM
 )"""
 
 pep_df = spark.read.format("jdbc") \
@@ -172,11 +182,14 @@ fwp_query = """(
         'FWP' as company,
         ih.customer_id, 
         ih.bill2_name customer_name, 
+        ih.bill2_city customer_city,
+        ih.bill2_state customer_state,
         ih.order_date, 
         il.order_no, 
         cast(il.line_no as varchar) line_no, 
-        il.item_id, 
-        il.item_desc, 
+        il.item_id prod_num, 
+        il.item_desc prod_desc, 
+        pg.product_group_desc prod_group,
         cast(qty_requested as float) qty_ordered, 
         cast(qty_shipped as float) qty_shipped, 
         unit_price, 
@@ -184,8 +197,8 @@ fwp_query = """(
         (extended_price - cogs_amount) profit_amount,
         cogs_amount, 
         tax_amount, 
-        amount_paid, 
-        total_amount, 
+        amount_paid paid_amount, 
+        total_amount invoice_amount, 
         invoice_date, 
         ih.invoice_no, 
         gl_revenue_account_no,
@@ -245,22 +258,24 @@ fwp_query = """(
             when ih.branch_id = 9289 then 'Warranty West Coast'
             when ih.branch_id = 9290 then 'Warranty American'
                 else bl.location_name end branch_location_name,
-        month(invoice_date) month, 
-        datename(month,invoice_date) month_name, 
-        day(invoice_date) day
+        datename(month,invoice_date) month_name
     from CommerceCenter.dbo.invoice_hdr ih 
     left join CommerceCenter.dbo.invoice_line il on ih.invoice_no = il.invoice_no
     left join CommerceCenter.dbo.location sl on ih.sales_location_id = sl.location_id
     left join CommerceCenter.dbo.location bl on ih.branch_id = bl.location_id
-    where year(invoice_date) >= dateadd(day,-30,getdate()) and gl_revenue_account_no like '4000%' and il.order_no is not null-- and item_desc not like '%TAX'
+    left join CommerceCenter.dbo.product_group pg on il.product_group_id = pg.product_group_id
+    where invoice_date >= dateadd(day,-30,getdate()) and gl_revenue_account_no like '4000%' and il.order_no is not null
     group by 
         ih.customer_id, 
         ih.bill2_name, 
+        ih.bill2_city,
+        ih.bill2_state,
         order_date, 
         il.order_no, 
         line_no, 
         item_id, 
         item_desc, 
+        pg.product_group_desc,
         qty_requested, 
         qty_shipped, 
         unit_price, 
