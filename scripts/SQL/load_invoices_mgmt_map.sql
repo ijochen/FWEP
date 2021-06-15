@@ -17,7 +17,7 @@ BEGIN
         "Director" director,
         "State" state,
         "Region Detail" region_detail,
-        "Region Leader" region_leader,
+        "Regional Leader" regional_leader,
         "City" city,
         "Location ID" location_id        
         from sales.invoice_data_merged sidm
