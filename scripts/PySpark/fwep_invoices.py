@@ -113,6 +113,12 @@ cur.execute(queryThree)
 conn.commit()
 cur.close()
 
+queryFour = "select sales.load_invoices_mgmt_map()"
+cur = conn.cursor()
+cur.execute(queryFour)
+conn.commit()
+cur.close()
+
 conn.close()
 
 

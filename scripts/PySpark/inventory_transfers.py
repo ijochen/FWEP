@@ -80,23 +80,23 @@ ss_df.write.jdbc(url=url, table="warehouse.inv_transfers", mode=mode, properties
 
 
 # 3) Merge tables together in a stored proc
-# import pg8000
+import pg8000
 
-# conn = pg8000.connect(
-#     database='analytics',
-#     user='postgres',
-#     password='kHSmwnXWrG^L3N$V2PXPpY22*47',
-#     host='db-cluster.cluster-ce0xsttrdwys.us-east-2.rds.amazonaws.com',
-#     port=5432
-# )
+conn = pg8000.connect(
+    database='analytics',
+    user='postgres',
+    password='kHSmwnXWrG^L3N$V2PXPpY22*47',
+    host='db-cluster.cluster-ce0xsttrdwys.us-east-2.rds.amazonaws.com',
+    port=5432
+)
 
-# query = "select warehouse.upsert_inv_transactions()"
-# cur = conn.cursor()
-# cur.execute(query)
-# conn.commit()
-# cur.close()
+query = "select warehouse.load_interco_transfers()"
+cur = conn.cursor()
+cur.execute(query)
+conn.commit()
+cur.close()
 
-# conn.close()
+conn.close()
 
 
 job.commit()
