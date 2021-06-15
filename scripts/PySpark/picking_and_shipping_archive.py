@@ -38,6 +38,7 @@ erp_query = """
 			oh.hold_invoice_flag as oh_hold_invoice_flag, -- order_hold (credit hold) ...
 			oh.front_counter as oh_front_counter,
 			ol.disposition as ol_disposition, -- order_disposition (out of stock - B backorder, T transfer, ..)
+			oh.approved as oh_approved,
 			oh.completed as oh_completed,
 			oh.projected_order as oh_projected_order,
 			oh.will_call as oh_will_call,
@@ -75,7 +76,7 @@ erp_query = """
 			distinct key1_value 
 		from dbo.audit_trail WITH (NOLOCK) 
 		where key1_cd = 'order_no' 
-            --and date_created >= DATEADD(day,-30, GETDATE()) 
+            and date_created >= DATEADD(month,-6, GETDATE())
 	)
 """
 erp_order_lines_df = spark.read.format("jdbc") \
@@ -112,7 +113,7 @@ erp_ship_query = """
 					distinct key1_value 
 				from dbo.audit_trail WITH (NOLOCK) 
 				where key1_cd = 'order_no' 
-                    --and date_created >= DATEADD(day,-30, GETDATE()) 
+                    and date_created >= DATEADD(month,-6, GETDATE()) 
 			)
 	) a 
 	left join dbo.users u WITH (NOLOCK)
@@ -145,7 +146,7 @@ erp_pick_query = """
 					distinct key1_value 
 				from dbo.audit_trail WITH (NOLOCK) 
 				where key1_cd = 'order_no' 
-                    --and date_created >= DATEADD(day,-30, GETDATE())
+                    and date_created >= DATEADD(month,-6, GETDATE())
 			)
 	) a 
 	left join dbo.users u WITH (NOLOCK)
@@ -171,7 +172,7 @@ erp_print_date_query = """
             distinct key1_value 
         from dbo.audit_trail WITH (NOLOCK)
         where key1_cd = 'order_no' 
-            --and date_created >= DATEADD(day, -30, GETDATE())
+            and date_created >= DATEADD(month, -6, GETDATE())
     ) and t.delete_flag = 'N'
 """
 

@@ -38,6 +38,7 @@ erp_query = """
 			oh.hold_invoice_flag as oh_hold_invoice_flag, -- order_hold (credit hold) ...
 			oh.front_counter as oh_front_counter,
 			ol.disposition as ol_disposition, -- order_disposition (out of stock - B backorder, T transfer, ..)
+			oh.approved as oh_approved,
 			oh.completed as oh_completed,
 			oh.projected_order as oh_projected_order,
 			oh.will_call as oh_will_call,

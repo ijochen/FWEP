@@ -38,6 +38,7 @@ erp_query = """(
         front_counter,
 		ol.disposition ol_disposition,
 		oh.projected_order oh_projected_orders,
+        oh.approved oh_approved,
 		oh.completed oh_completed,
 		oh.will_call oh_will_call,	    
 
@@ -110,7 +111,7 @@ joined_df = erp_order_lines_df \
 mode = "overwrite"
 url = "jdbc:postgresql://db-cluster.cluster-ce0xsttrdwys.us-east-2.rds.amazonaws.com:5432/analytics"
 properties = {"user": "postgres","password": "kHSmwnXWrG^L3N$V2PXPpY22*47","driver": "org.postgresql.Driver"}
-joined_df.write.jdbc(url=url, table="warehouse.picking_and_shipping_stripped_fwp_incremental", mode=mode, properties=properties)
+joined_df.write.jdbc(url=url, table="warehouse.picking_and_shipping_stripped_fwp_incremental_new", mode=mode, properties=properties)
 
 
 # 3) Merge tables together in a stored proc

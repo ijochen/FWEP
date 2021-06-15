@@ -38,6 +38,7 @@ erp_query = """(
         front_counter,
 		ol.disposition ol_disposition,
 		oh.projected_order oh_projected_orders,
+        oh.approved oh_approved,
 		oh.completed oh_completed,
 		oh.will_call oh_will_call,	    
 
