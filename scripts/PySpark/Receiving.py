@@ -45,7 +45,7 @@ erp_query = """(
         on t.location_id = l.location_id
     left join dbo.inventory_receipts_hdr irl 
         on t.transaction_number = irl.receipt_number
-    where t.location_id in ('140','60','10','330','331') and t.date_created >= dateadd(day,-30,getdate())
+    where (bin like '%REC%' or bin like '%SHIP%')
     group by t.location_id, 
         l.location_name, 
         t.bin, 
@@ -88,11 +88,11 @@ cur.execute(query)
 conn.commit()
 cur.close()
 
-queryTwo = "select warehouse.load_receiving()"
-cur = conn.cursor()
-cur.execute(queryTwo)
-conn.commit()
-cur.close()
+# queryTwo = "select warehouse.load_receiving()"
+# cur = conn.cursor()
+# cur.execute(queryTwo)
+# conn.commit()
+# cur.close()
 
 conn.close()
 
