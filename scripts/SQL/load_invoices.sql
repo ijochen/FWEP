@@ -45,6 +45,7 @@ begin
                 when "Branch" = '27-Tempe' then 'Tempe'
                 when "Branch" = '28-Phoenix' then 'Phoenix'
                 when "Branch" = '29-Santa Ana' then 'Santa Ana'
+                when "Branch" = '30-El Centro' then 'El Centro'
                     else "Branch" end branch,
 			cast(null as timestamp) as order_date,
 			cast("MERCH_AMT" as float) as total_sales,
