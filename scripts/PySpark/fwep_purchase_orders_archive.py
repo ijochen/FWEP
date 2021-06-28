@@ -40,8 +40,9 @@ pep_query = """(
         case when b.BUYER_DESC is null then ph.BUYER_NUM else b.BUYER_DESC end buyer,
         pl.PROD_NUM,
         p.PROD_DESC1,
-        cast(pl.ORD_QTY as float) ORD_QTY,
-        cast(pl.REC_QTY as float) REC_QTY,
+        ca.PLINE_DESC PROD_CATEGORY,
+        ORD_QTY,
+        REC_QTY,
         pl.GRS_COST,
         pl.EXT_AMT,
         ph.CENTRAL_WHSE_NUM,
@@ -51,13 +52,14 @@ pep_query = """(
         cast(pl.DEL_DATE as date) DEL_DATE
     from Prelude.dbo.PO_HISTORY_LINE_IJO pl
     left join Prelude.dbo.PO_HISTORY_IJO ph on substring(pl.ID,1,13) = ph.ID
-    left join Prelude.dbo.SSProduct p on pl.PROD_NUM = p.PROD_NUM
-    left join Prelude.dbo.ssVEND_NF v on ph.VEND_NUM = v.VEND_NUM and ph.CO_NUM = v.CO_NUM
+    left join Prelude.dbo.PRODUCT_IJO p on pl.PROD_NUM = p.PROD_NUM
+    left join Prelude.dbo.CATEGORY_IJO ca on p.PLINE_NUM = ca.PLINE_NUM
+    left join Prelude.dbo.VEND_IJO v on ph.VEND_NUM = v.VEND_NUM and ph.CO_NUM = v.CO_NUM
     left join Prelude.dbo.BUYER_NF b on ph.BUYER_NUM = b.BUYER_NUM
-    where pl.PROD_NUM not in ('C','CSB') and year(ph.PO_DATE) >= 2019
+    where pl.PROD_NUM not in ('C','CSB','CS','CI','CN','CP','MN')  and ca.CO_NUM = '001' and year(ph.PO_DATE) >= 2019
     group by ph.PO_TYPE, ph.PO_NUM, pl.SEQ_NUM,
         ph.VEND_NUM, v.VEND_DESC, ph.BUYER_NUM, b.BUYER_DESC,
-        pl.PROD_NUM, p.PROD_DESC1,
+        pl.PROD_NUM, p.PROD_DESC1, ca.PLINE_DESC,
         pl.ORD_QTY, pl.REC_QTY,
         pl.GRS_COST, pl.EXT_AMT,
         ph.CENTRAL_WHSE_NUM, pl.WHSE_NUM,
@@ -94,11 +96,14 @@ fwp_query = """(
         cast(pl.line_no as varchar) line_no,
         cast(ph.vendor_id as varchar) vendor_id, 
         v.vendor_name,
-        replace(pl.created_by, 'FWPNET\\', '') buyer,
-        i.item_id,
-        pl.item_description,
-        cast(pl.qty_ordered as float) qty_ordered,
-        cast(pl.qty_received as float) qty_received,
+        case when pl.created_by like 'FWPNET\%' then replace(pl.created_by, 'FWPNET\', '') 
+             when pl.created_by like 'poolelectrical\%' then replace(pl.created_by, 'poolelectrical\', '') 
+                else pl.created_by end buyer,
+        i.item_id prod_num,
+        pl.item_description prod_desc,
+        i.default_sales_discount_group prod_group,
+        cast(pl.qty_ordered as varchar) qty_ordered,
+        cast(pl.qty_received as varchar) qty_received,
         pl.unit_price,
         (pl.unit_price * pl.qty_ordered) ext_price,
         cast(ph.location_id as varchar) location_id,
@@ -113,7 +118,7 @@ fwp_query = """(
     where year(ph.order_date) >= 2019
     group by ph.po_type, ph.po_no, pl.line_no, 
         ph.vendor_id, v.vendor_name, pl.created_by, 
-        i.item_id, pl.item_description, 
+        i.item_id, pl.item_description, i.default_sales_discount_group,
         pl.qty_ordered, pl.qty_received, 
         pl.unit_price, 
         ph.location_id, ph.branch_id, 

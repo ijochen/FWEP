@@ -81,6 +81,7 @@ begin
                 when branch_description = 'FWP - SPRINGHILL FL' then 'Spring Hill'
                 when branch_description = 'FWP - TAMPA  FL' then 'Tampa'
                 when branch_description = 'FWP - WEST PALM BEACH FL' then 'West Palm Beach'
+                when branch_description = 'PEP - EL CENTRO CA' then 'El Centro'
                 when branch_description = 'WARRANTY - APS' then 'Warranty American'
                 when branch_description = 'WARRANTY - FWP' then 'Warranty West Coast'
                     else branch_description end branch_description,
