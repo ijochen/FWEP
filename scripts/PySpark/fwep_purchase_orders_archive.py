@@ -27,7 +27,7 @@ job.init(args['JOB_NAME'], args)
 # 1) Load PEP - Read from FWP_SQL.Prelude Database and write to Data Warehouse 
 logger.info("******** START READING PEP *************")
 
-# Invoice last 30 days
+# PEP POs from 2019 to YTD
 pep_url = "jdbc:sqlserver://128.1.100.9:1433;databaseName=Prelude"
 pep_query = """(
     select distinct
@@ -86,7 +86,7 @@ logger.info("******** END READING PEP *************")
 
 logger.info("******** START READING FWP *************")
 
-
+# FWP POs from 2019 to YTD
 fwp_url = "jdbc:sqlserver://128.1.100.9:1433;databaseName=CommerceCenter"
 fwp_query = """(
     select distinct 
