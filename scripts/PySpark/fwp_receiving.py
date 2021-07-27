@@ -35,13 +35,11 @@ erp_query = """(
         i.item_desc,
 		sum(t.quantity) over (partition by i.item_id, t.bin, t.location_id) quantity_on_hand,
 		max(t.date_created) over(partition by t.location_id, t.bin, i.item_id) date_received
-    from CommerceCenter.dbo.inv_tran_bin_detail t 
+    from CommerceCenter.dbo.inv_bin t 
     left join CommerceCenter.dbo.inv_mast i
         on t.inv_mast_uid = i.inv_mast_uid
     left join CommerceCenter.dbo.location l 
         on t.location_id = l.location_id
-    left join CommerceCenter.dbo.inventory_receipts_hdr irl 
-        on t.transaction_number = irl.receipt_number
     where bin like '%REC%' 
     group by t.location_id, 
         t.location_id, 
