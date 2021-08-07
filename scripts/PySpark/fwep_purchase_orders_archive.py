@@ -39,14 +39,82 @@ pep_query = """(
         v.VEND_DESC,
         case when b.BUYER_DESC is null then ph.BUYER_NUM else b.BUYER_DESC end buyer,
         pl.PROD_NUM,
-        p.PROD_DESC1,
+        concat(p.PROD_DESC1,' ',p.PROD_DESC2) PROD_DESC,
         ca.PLINE_DESC PROD_CATEGORY,
         ORD_QTY,
         REC_QTY,
         pl.GRS_COST,
         pl.EXT_AMT,
         ph.CENTRAL_WHSE_NUM,
+        case	 
+            when ph.CENTRAL_WHSE_NUM = '01' then 'PEP - ANAHEIM CA'
+            when ph.CENTRAL_WHSE_NUM = '02' then 'PEP - INDIO CA'
+            when ph.CENTRAL_WHSE_NUM = '03' then 'PEP - EL CAJON CA'
+            when ph.CENTRAL_WHSE_NUM = '04' then 'PEP - MURRIETA CA'
+            when ph.CENTRAL_WHSE_NUM = '05' then 'PEP - LIVERMORE CA'
+            when ph.CENTRAL_WHSE_NUM = '06' then 'PEP - ONTARIO CA'
+            when ph.CENTRAL_WHSE_NUM = '07' then 'PEP - SAN DIMAS CA'
+            when ph.CENTRAL_WHSE_NUM = '08' then 'PEP - CATHEDRAL CITY CA'
+            when ph.CENTRAL_WHSE_NUM = '09' then 'PEP - SAN FERNANDO CA'
+            when ph.CENTRAL_WHSE_NUM = '10' then 'PEP - VISALIA CA'
+            when ph.CENTRAL_WHSE_NUM = '11' then 'PEP - SAN ANTONIO TX'
+            when ph.CENTRAL_WHSE_NUM = '12' then 'PEP - VISTA CA'
+            when ph.CENTRAL_WHSE_NUM = '13' then 'PEP - AUSTIN TX'
+            when ph.CENTRAL_WHSE_NUM = '14' then 'PEP - PALM SPRINGS CA'
+            when ph.CENTRAL_WHSE_NUM = '15' then 'PEP - CORONA CA'
+            when ph.CENTRAL_WHSE_NUM = '16' then 'PEP - BAKERSFIELD CA'
+            when ph.CENTRAL_WHSE_NUM = '17' then 'PEP - HOUSTON TX'
+            when ph.CENTRAL_WHSE_NUM = '18' then 'PEP - LAKE FOREST CA'
+            when ph.CENTRAL_WHSE_NUM = '19' then 'PEP - MOORPARK CA'
+            when ph.CENTRAL_WHSE_NUM = '20' then 'PEP - NORTH AUSTIN TX'
+            when ph.CENTRAL_WHSE_NUM = '21' then 'PEP - DUARTE CA'
+            when ph.CENTRAL_WHSE_NUM = '22' then 'PEP - YUCAIPA CA'
+            when ph.CENTRAL_WHSE_NUM = '23' then 'PEP - RIVERSIDE CA'
+            when ph.CENTRAL_WHSE_NUM = '24' then 'PEP - LONG BEACH CA'
+            when ph.CENTRAL_WHSE_NUM = '25' then 'PEP - PALM DESERT CA'
+            when ph.CENTRAL_WHSE_NUM = '26' then 'PEP - LOS ANGELES CA'
+            when ph.CENTRAL_WHSE_NUM = '27' then 'PEP - TEMPE AZ'
+            when ph.CENTRAL_WHSE_NUM = '28' then 'PEP - PHOENIX AZ'
+            when ph.CENTRAL_WHSE_NUM = '29' then 'PEP - SANTA ANA CA'
+            when ph.CENTRAL_WHSE_NUM = '30' then 'PEP - EL CENTRO CA'
+            when ph.CENTRAL_WHSE_NUM = '98' then 'PEP - CORPORATE WAREHOUSE'
+            when ph.CENTRAL_WHSE_NUM = '99' then 'PEP - CENTRAL SHIPPING WAREHOUSE'
+                else ph.CENTRAL_WHSE_NUM end CENTRAL_WHSE_NAME,
         pl.WHSE_NUM,
+        case	 
+            when pl.WHSE_NUM = '01' then 'PEP - ANAHEIM CA'
+            when pl.WHSE_NUM = '02' then 'PEP - INDIO CA'
+            when pl.WHSE_NUM = '03' then 'PEP - EL CAJON CA'
+            when pl.WHSE_NUM = '04' then 'PEP - MURRIETA CA'
+            when pl.WHSE_NUM = '05' then 'PEP - LIVERMORE CA'
+            when pl.WHSE_NUM = '06' then 'PEP - ONTARIO CA'
+            when pl.WHSE_NUM = '07' then 'PEP - SAN DIMAS CA'
+            when pl.WHSE_NUM = '08' then 'PEP - CATHEDRAL CITY CA'
+            when pl.WHSE_NUM = '09' then 'PEP - SAN FERNANDO CA'
+            when pl.WHSE_NUM = '10' then 'PEP - VISALIA CA'
+            when pl.WHSE_NUM = '11' then 'PEP - SAN ANTONIO TX'
+            when pl.WHSE_NUM = '12' then 'PEP - VISTA CA'
+            when pl.WHSE_NUM = '13' then 'PEP - AUSTIN TX'
+            when pl.WHSE_NUM = '14' then 'PEP - PALM SPRINGS CA'
+            when pl.WHSE_NUM = '15' then 'PEP - CORONA CA'
+            when pl.WHSE_NUM = '16' then 'PEP - BAKERSFIELD CA'
+            when pl.WHSE_NUM = '17' then 'PEP - HOUSTON TX'
+            when pl.WHSE_NUM = '18' then 'PEP - LAKE FOREST CA'
+            when pl.WHSE_NUM = '19' then 'PEP - MOORPARK CA'
+            when pl.WHSE_NUM = '20' then 'PEP - NORTH AUSTIN TX'
+            when pl.WHSE_NUM = '21' then 'PEP - DUARTE CA'
+            when pl.WHSE_NUM = '22' then 'PEP - YUCAIPA CA'
+            when pl.WHSE_NUM = '23' then 'PEP - RIVERSIDE CA'
+            when pl.WHSE_NUM = '24' then 'PEP - LONG BEACH CA'
+            when pl.WHSE_NUM = '25' then 'PEP - PALM DESERT CA'
+            when pl.WHSE_NUM = '26' then 'PEP - LOS ANGELES CA'
+            when pl.WHSE_NUM = '27' then 'PEP - TEMPE AZ'
+            when pl.WHSE_NUM = '28' then 'PEP - PHOENIX AZ'
+            when pl.WHSE_NUM = '29' then 'PEP - SANTA ANA CA'
+            when pl.WHSE_NUM = '30' then 'PEP - EL CENTRO CA'
+            when pl.WHSE_NUM = '98' then 'PEP - CORPORATE WAREHOUSE'
+            when pl.WHSE_NUM = '99' then 'PEP - CENTRAL SHIPPING WAREHOUSE'
+                else pl.WHSE_NUM end WHSE_NAME,
         cast(ph.PO_DATE as date) PO_DATE,
         cast(ph.REC_DATE as date) REC_DATE,
         cast(pl.DEL_DATE as date) DEL_DATE
@@ -59,7 +127,7 @@ pep_query = """(
     where pl.PROD_NUM not in ('C','CSB','CS','CI','CN','CP','MN')  and ca.CO_NUM = '001' and year(ph.PO_DATE) >= 2019
     group by ph.PO_TYPE, ph.PO_NUM, pl.SEQ_NUM,
         ph.VEND_NUM, v.VEND_DESC, ph.BUYER_NUM, b.BUYER_DESC,
-        pl.PROD_NUM, p.PROD_DESC1, ca.PLINE_DESC,
+        pl.PROD_NUM, p.PROD_DESC1, p.PROD_DESC2, ca.PLINE_DESC,
         pl.ORD_QTY, pl.REC_QTY,
         pl.GRS_COST, pl.EXT_AMT,
         ph.CENTRAL_WHSE_NUM, pl.WHSE_NUM,
@@ -76,7 +144,7 @@ pep_df = spark.read.format("jdbc") \
 mode = "overwrite"
 url = "jdbc:postgresql://db-cluster.cluster-ce0xsttrdwys.us-east-2.rds.amazonaws.com:5432/analytics"
 properties = {"user": "postgres","password": "kHSmwnXWrG^L3N$V2PXPpY22*47","driver": "org.postgresql.Driver"}
-pep_df.write.jdbc(url=url, table="procurement.pep_purchase_orders", mode=mode, properties=properties)
+pep_df.write.jdbc(url=url, table="procurement.pep_purchase_orders_new", mode=mode, properties=properties)
 
 
 logger.info("******** END READING PEP *************")
@@ -89,7 +157,7 @@ logger.info("******** START READING FWP *************")
 # FWP POs from 2019 to YTD
 fwp_url = "jdbc:sqlserver://128.1.100.9:1433;databaseName=CommerceCenter"
 fwp_query = """(
-    select distinct 
+    select distinct
         'FWP' as company,
         ph.po_type, 
         cast(ph.po_no as varchar) po_no,
@@ -97,8 +165,7 @@ fwp_query = """(
         cast(ph.vendor_id as varchar) vendor_id, 
         v.vendor_name,
         case when pl.created_by like 'FWPNET\%' then replace(pl.created_by, 'FWPNET\', '') 
-             when pl.created_by like 'poolelectrical\%' then replace(pl.created_by, 'poolelectrical\', '') 
-                else pl.created_by end buyer,
+            when pl.created_by like 'poolelectrical\%' then replace(pl.created_by, 'poolelectrical\', '') else pl.created_by end buyer,
         i.item_id prod_num,
         pl.item_description prod_desc,
         i.default_sales_discount_group prod_group,
@@ -107,7 +174,9 @@ fwp_query = """(
         pl.unit_price,
         (pl.unit_price * pl.qty_ordered) ext_price,
         cast(ph.location_id as varchar) location_id,
+        b1.branch_description location_name,
         ph.branch_id,
+        b2.branch_description branch_name,
         cast(ph.order_date as date) order_date,
         cast(ph.receipt_date as date) receipt_date,
         cast(pl.date_due as date) promised_del_date
@@ -115,13 +184,15 @@ fwp_query = """(
     left join CommerceCenter.dbo.po_line pl on ph.po_no = pl.po_no
     left join CommerceCenter.dbo.vendor v on ph.vendor_id = v.vendor_id
     left join CommerceCenter.dbo.inv_mast i on pl.inv_mast_uid = i.inv_mast_uid
+    left join CommerceCenter.dbo.branch b1 on ph.location_id = b1.branch_id
+    left join CommerceCenter.dbo.branch b2 on ph.branch_id = b2.branch_id
     where year(ph.order_date) >= 2019
     group by ph.po_type, ph.po_no, pl.line_no, 
         ph.vendor_id, v.vendor_name, pl.created_by, 
         i.item_id, pl.item_description, i.default_sales_discount_group,
         pl.qty_ordered, pl.qty_received, 
         pl.unit_price, 
-        ph.location_id, ph.branch_id, 
+        ph.location_id, ph.branch_id, b1.branch_description, b2.branch_description,
         ph.order_date, ph.receipt_date, pl.date_due
 )"""
 
@@ -135,7 +206,7 @@ fwp_df = spark.read.format("jdbc") \
 mode = "overwrite"
 url = "jdbc:postgresql://db-cluster.cluster-ce0xsttrdwys.us-east-2.rds.amazonaws.com:5432/analytics"
 properties = {"user": "postgres","password": "kHSmwnXWrG^L3N$V2PXPpY22*47","driver": "org.postgresql.Driver"}
-fwp_df.write.jdbc(url=url, table="procurement.fwp_purchase_orders", mode=mode, properties=properties)
+fwp_df.write.jdbc(url=url, table="procurement.fwp_purchase_orders_new", mode=mode, properties=properties)
 
 
 logger.info("******** END READING FWP *************")
