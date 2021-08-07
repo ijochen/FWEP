@@ -76,7 +76,7 @@ pep_df = spark.read.format("jdbc") \
 mode = "overwrite"
 url = "jdbc:postgresql://db-cluster.cluster-ce0xsttrdwys.us-east-2.rds.amazonaws.com:5432/analytics"
 properties = {"user": "postgres","password": "kHSmwnXWrG^L3N$V2PXPpY22*47","driver": "org.postgresql.Driver"}
-pep_df.write.jdbc(url=url, table="procurement.pep_purchase_orders_incremental", mode=mode, properties=properties)
+pep_df.write.jdbc(url=url, table="procurement.pep_purchase_orders_incremental_new", mode=mode, properties=properties)
 
 
 logger.info("******** END READING PEP *************")
@@ -98,8 +98,8 @@ fwp_query = """(
         cast(ph.vendor_id as varchar) vendor_id, 
         v.vendor_name,
         case when pl.created_by like 'FWPNET\%' then replace(pl.created_by, 'FWPNET\', '') 
-             when pl.created_by like 'poolelectrical\%' then replace(pl.created_by, 'poolelectrical\', '') 
-                else pl.created_by end buyer,
+            when pl.created_by like 'poolelectrical\%' then replace(pl.created_by, 'poolelectrical\', '') 
+                else pl.created_by end buyer,                                             
         i.item_id prod_num,
         pl.item_description prod_desc,
         i.default_sales_discount_group prod_group,
@@ -136,43 +136,43 @@ fwp_df = spark.read.format("jdbc") \
 mode = "overwrite"
 url = "jdbc:postgresql://db-cluster.cluster-ce0xsttrdwys.us-east-2.rds.amazonaws.com:5432/analytics"
 properties = {"user": "postgres","password": "kHSmwnXWrG^L3N$V2PXPpY22*47","driver": "org.postgresql.Driver"}
-fwp_df.write.jdbc(url=url, table="procurement.fwp_purchase_orders_incremental", mode=mode, properties=properties)
+fwp_df.write.jdbc(url=url, table="procurement.fwp_purchase_orders_incremental_new", mode=mode, properties=properties)
 
 
 logger.info("******** END READING FWP *************")
 
 
 # 3) Merge tables together in a stored proc
-import pg8000
+# import pg8000
 
-conn = pg8000.connect(
-    database='analytics',
-    user='postgres',
-    password='kHSmwnXWrG^L3N$V2PXPpY22*47',
-    host='db-cluster.cluster-ce0xsttrdwys.us-east-2.rds.amazonaws.com',
-    port=5432
-)
+# conn = pg8000.connect(
+#     database='analytics',
+#     user='postgres',
+#     password='kHSmwnXWrG^L3N$V2PXPpY22*47',
+#     host='db-cluster.cluster-ce0xsttrdwys.us-east-2.rds.amazonaws.com',
+#     port=5432
+# )
 
-query = "select procurement.upsert_pep_purchases()"
-cur = conn.cursor()
-cur.execute(query)
-conn.commit()
-cur.close()
+# query = "select procurement.upsert_pep_purchases()"
+# cur = conn.cursor()
+# cur.execute(query)
+# conn.commit()
+# cur.close()
 
 
-queryTwo = "select procurement.upsert_fwp_purchases()"
-cur = conn.cursor()
-cur.execute(queryTwo)
-conn.commit()
-cur.close()
+# queryTwo = "select procurement.upsert_fwp_purchases()"
+# cur = conn.cursor()
+# cur.execute(queryTwo)
+# conn.commit()
+# cur.close()
 
-queryThree = "select procurement.load_purchases()"
-cur = conn.cursor()
-cur.execute(queryThree)
-conn.commit()
-cur.close()
+# queryThree = "select procurement.load_purchases()"
+# cur = conn.cursor()
+# cur.execute(queryThree)
+# conn.commit()
+# cur.close()
 
-conn.close()
+# conn.close()
 
 
 job.commit()
