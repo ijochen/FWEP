@@ -211,5 +211,37 @@ fwp_df.write.jdbc(url=url, table="procurement.fwp_purchase_orders_new", mode=mod
 
 logger.info("******** END READING FWP *************")
 
+# 3) Merge tables together in a stored proc
+import pg8000
+
+conn = pg8000.connect(
+    database='analytics',
+    user='postgres',
+    password='kHSmwnXWrG^L3N$V2PXPpY22*47',
+    host='db-cluster.cluster-ce0xsttrdwys.us-east-2.rds.amazonaws.com',
+    port=5432
+)
+
+query = "select procurement.upsert_fwp_purchases()"
+cur = conn.cursor()
+cur.execute(query)
+conn.commit()
+cur.close()
+
+
+queryTwo = "select procurement.upsert_pep_purchases()"
+cur = conn.cursor()
+cur.execute(queryTwo)
+conn.commit()
+cur.close()
+
+queryThree = "select procurement.load_purchases()"
+cur = conn.cursor()
+cur.execute(queryThree)
+conn.commit()
+cur.close()
+
+conn.close()
+
 
 job.commit()
