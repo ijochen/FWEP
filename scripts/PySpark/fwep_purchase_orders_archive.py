@@ -118,9 +118,9 @@ pep_query = """(
             when pl.WHSE_NUM = '98' then 'PEP - CORPORATE WAREHOUSE'
             when pl.WHSE_NUM = '99' then 'PEP - CENTRAL SHIPPING WAREHOUSE'
                 else pl.WHSE_NUM end WHSE_NAME,
-        ph.PO_DATE,
-        ph.REC_DATE,
-        pl.DEL_DATE
+        cast(ph.PO_DATE as date) PO_DATE,
+        cast(ph.REC_DATE as date) REC_DATE,
+        cast(pl.DEL_DATE as date) DEL_DATE
     from Prelude.dbo.PO_HISTORY_LINE_IJO pl
     left join Prelude.dbo.PO_HISTORY_IJO ph on substring(pl.ID,1,13) = ph.ID
     left join Prelude.dbo.PRODUCT_IJO p on pl.PROD_NUM = p.PROD_NUM
