@@ -127,7 +127,7 @@ pep_query = """(
     left join Prelude.dbo.USER_ID_NF U on ph.BUYER_NUM = u.USER_NUM
     where pl.PROD_NUM not in ('C','CSB','CS','CI','CN','CP','MN')  and ca.CO_NUM = '001' and year(ph.PO_DATE) >= 2019
     group by ph.PO_TYPE, ph.PO_NUM, pl.SEQ_NUM,
-        ph.VEND_NUM, v.VEND_DESC, ph.BUYER_NUM, b.BUYER_DESC,
+        ph.VEND_NUM, v.VEND_DESC, ph.BUYER_NUM, b.BUYER_DESC, u.USER_DESC,
         pl.PROD_NUM, p.PROD_DESC1, p.PROD_DESC2, ca.PLINE_DESC,
         pl.ORD_QTY, pl.REC_QTY,
         pl.GRS_COST, pl.EXT_AMT,
@@ -189,7 +189,7 @@ fwp_query = """(
     left join CommerceCenter.dbo.users u on right(pl.created_by,charindex('\',reverse(pl.created_by))-1) = u.id
     where year(ph.order_date) >= 2019
     group by ph.po_type, ph.po_no, pl.line_no, 
-        ph.vendor_id, v.vendor_name, pl.created_by, 
+        ph.vendor_id, v.vendor_name, pl.created_by, u.name,
         i.item_id, pl.item_description, i.default_sales_discount_group,
         pl.qty_ordered, pl.qty_received, 
         pl.unit_price, 
