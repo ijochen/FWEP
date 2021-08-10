@@ -30,7 +30,7 @@ logger.info("******** START READING PEP *************")
 # PEP POs from 2019 to YTD
 pep_url = "jdbc:sqlserver://128.1.100.9:1433;databaseName=Prelude"
 pep_query = """(
-    select distinct top(100)
+    select distinct --top(100)
         'PEP' as COMPANY,
         ph.PO_TYPE,
         ph.PO_NUM,
@@ -128,11 +128,11 @@ pep_query = """(
     left join Prelude.dbo.VEND_IJO v on ph.VEND_NUM = v.VEND_NUM and ph.CO_NUM = v.CO_NUM
     left join Prelude.dbo.BUYER_NF b on ph.BUYER_NUM = b.BUYER_NUM
     left join Prelude.dbo.USER_ID_NF U on ph.BUYER_NUM = u.USER_NUM
-    where pl.PROD_NUM not in ('C','CSB','CS','CI','CN','CP','MN')  and ca.CO_NUM = '001' and year(ph.PO_DATE) >= 2019
+    where /*pl.PROD_NUM not in ('C','CSB','CS','CI','CN','CP','MN')  and */p.CO_NUM = '001' and ca.CO_NUM = '001' and year(ph.PO_DATE) >= 2019
     group by ph.PO_TYPE, ph.PO_NUM, pl.SEQ_NUM,
         ph.VEND_NUM, v.VEND_DESC, ph.BUYER_NUM, b.BUYER_DESC, u.USER_DESC,
         pl.PROD_NUM, p.PROD_DESC1, p.PROD_DESC2, ca.PLINE_DESC, pl.VPROD_NUM,
-        pl.UN_MEAS, pl.ORD_QTY, pl.REC_QTY,
+        pl.UN_MEAS,	pl.ORD_QTY, pl.REC_QTY,
         pl.GRS_COST, pl.EXT_AMT,
         ph.CENTRAL_WHSE_NUM, pl.WHSE_NUM,
         ph.PO_DATE, ph.REC_DATE, pl.DEL_DATE
@@ -163,12 +163,14 @@ fwp_url = "jdbc:sqlserver://128.1.100.9:1433;databaseName=CommerceCenter"
 fwp_query = """(
     select distinct --top(100)
         'FWP' as company,
-        ph.po_type, 
+        ph.po_type,         
         cast(ph.po_no as varchar) po_no,
         cast(pl.line_no as varchar) line_no,
         cast(ph.vendor_id as varchar) vendor_id, 
         v.vendor_name,
-        right(pl.created_by,charindex('\',reverse(pl.created_by))-1) buyer,
+        case when pl.created_by like 'FWPNET\%' then replace(pl.created_by,'FWPNET\\','') 
+            when pl.created_by like 'poolelectrical\%' then replace(pl.created_by,'poolelectrical\\','') 
+            end buyer,
         u.name buyer_name,
         i.item_id prod_num,
         pl.item_description prod_desc,
@@ -188,21 +190,19 @@ fwp_query = """(
         cast(pl.date_due as date) promised_del_date
     from CommerceCenter.dbo.po_line pl
     left join CommerceCenter.dbo.po_hdr ph on pl.po_no = ph.po_no
-    --left join CommerceCenter.dbo.po_line pl on ph.po_no = pl.po_no
     left join CommerceCenter.dbo.vendor v on ph.vendor_id = v.vendor_id
     left join CommerceCenter.dbo.inv_mast i on pl.inv_mast_uid = i.inv_mast_uid
     left join CommerceCenter.dbo.inventory_supplier ins on pl.inv_mast_uid = ins.inv_mast_uid and ph.vendor_id = ins.supplier_id
     left join CommerceCenter.dbo.branch b1 on ph.location_id = b1.branch_id
     left join CommerceCenter.dbo.branch b2 on ph.branch_id = b2.branch_id
-    left join CommerceCenter.dbo.users u on right(pl.created_by,charindex('\',reverse(pl.created_by))-1) = u.id
-    where year(ph.order_date) >= 2019
+    left join CommerceCenter.dbo.users u on replace(pl.created_by,'FWPNET\\','') = u.id or replace(pl.created_by,'poolelectrical\\','') = u.id
+    where year(ph.order_date) >= 2019 
     group by ph.po_type, ph.po_no, pl.line_no, 
         ph.vendor_id, v.vendor_name, pl.created_by, u.name,
-        i.item_id, pl.item_description, i.default_sales_discount_group, ins.supplier_part_no, pl.unit_of_measure,
-        pl.qty_ordered, pl.qty_received, 
-        pl.unit_price, 
+        i.item_id, pl.item_description, i.default_sales_discount_group, ins.supplier_part_no, 
+        pl.unit_of_measure,	pl.qty_ordered, pl.qty_received, pl.unit_price, 
         ph.location_id, ph.branch_id, b1.branch_description, b2.branch_description,
-	    ph.order_date, ph.receipt_date, pl.date_due
+        ph.order_date, ph.receipt_date, pl.date_due
 )"""
 
 fwp_df = spark.read.format("jdbc") \
