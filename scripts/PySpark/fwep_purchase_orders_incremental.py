@@ -164,8 +164,8 @@ fwp_query = """(
         cast(pl.line_no as varchar) line_no,
         cast(ph.vendor_id as varchar) vendor_id, 
         v.vendor_name,
-        case when pl.created_by like 'FWPNET\%' then replace(pl.created_by, 'FWPNET\', '') 
-            when pl.created_by like 'poolelectrical\%' then replace(pl.created_by, 'poolelectrical\', '') else pl.created_by end buyer,
+        case when pl.created_by like 'FWPNET\%' then replace(pl.created_by, 'FWPNET\\', '') 
+            when pl.created_by like 'poolelectrical\%' then replace(pl.created_by, 'poolelectrical\\', '') else pl.created_by end buyer,
         i.item_id prod_num,
         pl.item_description prod_desc,
         i.default_sales_discount_group prod_group,
