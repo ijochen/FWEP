@@ -37,7 +37,7 @@ pep_query = """(
         pl.SEQ_NUM,
         ph.VEND_NUM,
         v.VEND_DESC,
-        case when b.BUYER_DESC is null then ph.BUYER_NUM else b.BUYER_DESC end buyer,
+        case when u.USER_DESC is null then ph.BUYER_NUM else u.USER_DESC end buyer,
         pl.PROD_NUM,
         concat(p.PROD_DESC1,' ',p.PROD_DESC2) PROD_DESC,
         ca.PLINE_DESC PROD_CATEGORY,
@@ -124,6 +124,7 @@ pep_query = """(
     left join Prelude.dbo.CATEGORY_IJO ca on p.PLINE_NUM = ca.PLINE_NUM
     left join Prelude.dbo.VEND_IJO v on ph.VEND_NUM = v.VEND_NUM and ph.CO_NUM = v.CO_NUM
     left join Prelude.dbo.BUYER_NF b on ph.BUYER_NUM = b.BUYER_NUM
+    left join Prelude.dbo.USER_ID_NF U on ph.BUYER_NUM = u.USER_NUM
     where pl.PROD_NUM not in ('C','CSB','CS','CI','CN','CP','MN')  and ca.CO_NUM = '001' and year(ph.PO_DATE) >= 2019
     group by ph.PO_TYPE, ph.PO_NUM, pl.SEQ_NUM,
         ph.VEND_NUM, v.VEND_DESC, ph.BUYER_NUM, b.BUYER_DESC,
@@ -164,8 +165,7 @@ fwp_query = """(
         cast(pl.line_no as varchar) line_no,
         cast(ph.vendor_id as varchar) vendor_id, 
         v.vendor_name,
-        case when pl.created_by like 'FWPNET\%' then replace(pl.created_by, 'FWPNET\\', '') 
-            when pl.created_by like 'poolelectrical\%' then replace(pl.created_by, 'poolelectrical\\', '') else pl.created_by end buyer,
+        u.name buyer,
         i.item_id prod_num,
         pl.item_description prod_desc,
         i.default_sales_discount_group prod_group,
@@ -186,6 +186,7 @@ fwp_query = """(
     left join CommerceCenter.dbo.inv_mast i on pl.inv_mast_uid = i.inv_mast_uid
     left join CommerceCenter.dbo.branch b1 on ph.location_id = b1.branch_id
     left join CommerceCenter.dbo.branch b2 on ph.branch_id = b2.branch_id
+    left join CommerceCenter.dbo.users u on right(pl.created_by,charindex('\',reverse(pl.created_by))-1) = u.id
     where year(ph.order_date) >= 2019
     group by ph.po_type, ph.po_no, pl.line_no, 
         ph.vendor_id, v.vendor_name, pl.created_by, 
