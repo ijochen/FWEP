@@ -235,7 +235,7 @@ cur.execute(queryTwo)
 conn.commit()
 cur.close()
 
-queryThree = "select procurement.load_purchases()"
+queryThree = "select procurement.load_fwep_purchases()"
 cur = conn.cursor()
 cur.execute(queryThree)
 conn.commit()
