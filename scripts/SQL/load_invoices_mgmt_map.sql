@@ -1,3 +1,5 @@
+--DROP FUNCTION sales.load_invoices_mgmt_map()
+
 CREATE FUNCTION sales.load_invoices_mgmt_map() RETURNS void AS $$
 BEGIN
     DROP TABLE IF EXISTS sales.invoice_data_merged_mgmt;
@@ -31,3 +33,4 @@ END;
 $$
 LANGUAGE plpgsql;
 
+--SELECT sales.load_invoices_mgmt_map()

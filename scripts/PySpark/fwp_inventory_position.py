@@ -37,7 +37,7 @@ erp_query = """(
         sum(qty_on_hand) qty_on_hand, 
         sum(qty_allocated) qty_allocated, 
         (sum(qty_on_hand) - sum(qty_allocated)) qty_available,
-        cast(getdate() as date) trans_date
+        --cast(getdate() as date) trans_date
     from CommerceCenter.dbo.inv_loc il
     left join CommerceCenter.dbo.branch b on il.location_id = b.branch_id
     left join CommerceCenter.dbo.inv_mast im on il.inv_mast_uid = im.inv_mast_uid
