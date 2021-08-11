@@ -36,7 +36,8 @@ erp_query = """(
         avg(fi.cost) avg_fifo_cost,
         sum(qty_on_hand) qty_on_hand, 
         sum(qty_allocated) qty_allocated, 
-        (sum(qty_on_hand) - sum(qty_allocated)) qty_available
+        (sum(qty_on_hand) - sum(qty_allocated)) qty_available,
+        getdate() trans_date
     from CommerceCenter.dbo.inv_loc il
     left join CommerceCenter.dbo.branch b on il.location_id = b.branch_id
     left join CommerceCenter.dbo.inv_mast im on il.inv_mast_uid = im.inv_mast_uid
@@ -64,23 +65,23 @@ ss_df.write.jdbc(url=url, table="warehouse.inventory_position_incremental", mode
 
 
 # 3) Merge tables together in a stored proc
-# import pg8000
+import pg8000
 
-# conn = pg8000.connect(
-#     database='analytics',
-#     user='postgres',
-#     password='kHSmwnXWrG^L3N$V2PXPpY22*47',
-#     host='db-cluster.cluster-ce0xsttrdwys.us-east-2.rds.amazonaws.com',
-#     port=5432
-# )
+conn = pg8000.connect(
+    database='analytics',
+    user='postgres',
+    password='kHSmwnXWrG^L3N$V2PXPpY22*47',
+    host='db-cluster.cluster-ce0xsttrdwys.us-east-2.rds.amazonaws.com',
+    port=5432
+)
 
-# query = "select warehouse.load_inv_position()"
-# cur = conn.cursor()
-# cur.execute(query)
-# conn.commit()
-# cur.close()
+query = "select warehouse.upsert_fwp_inventory_position()"
+cur = conn.cursor()
+cur.execute(query)
+conn.commit()
+cur.close()
 
-# conn.close()
+conn.close()
 
 
 job.commit()

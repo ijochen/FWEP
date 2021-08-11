@@ -1,7 +1,7 @@
 --DROP FUNCTION procurement.load_purchases()
 
 CREATE FUNCTION procurement.load_fwep_purchases() RETURNS void AS $$
-BEGIN   
+BEGIN 
     DROP TABLE IF EXISTS procurement.fwep_purchase_data_merged;
 
     CREATE TABLE procurement.fwep_purchase_data_merged AS

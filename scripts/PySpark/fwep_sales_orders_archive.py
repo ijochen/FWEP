@@ -30,129 +30,146 @@ logger.info("******** START READING PEP *************")
 # Invoice last 30 days
 pep_url = "jdbc:sqlserver://128.1.100.9:1433;databaseName=Prelude"
 pep_query = """(
-    select distinct
-        'PEP' as company,
-        t3.CUST_NUM, 
+    select distinct --top(100)
+        'PEP' as COMPANY,
+        CT.CT_DESC CUST_TYPE,
+        OH.CUST_NUM, 
         max(cu.CUST_DESC) CUST_DESC,
         max(cu.CITY) CUST_CITY,
         max(cu.STATE) CUST_STATE,
-        cast(t3.ORD_DATE as datetime) ORD_DATE, 
-        t3.ORD_NUM, 
-        t1.SEQ_NUM LINE_NUM, 
-        t1.PROD_NUM, 
-        p.PROD_DESC1 PROD_DESC,
-        ca.PLINE_DESC PROD_GROUP,
-        cast(t1.ORD_QTY as float) ORD_QTY, 
-        cast(t1.SHP_QTY as float) SHP_QTY, 
-        t1.NET_PRICE, 
-        t1.LINE_EXT,
-        t1.PROFIT_EXT, 
-        t1.NET_COST_EXT, 
+        OH.USER_ID,
+        U.USER_DESC USER_NAME,
+        OH.SHIP_VIA_NUM,
+        cast(OH.ORD_DATE as datetime) ORD_DATE, 
+        OH.CUST_PO_NUM,
+        OH.ORD_NUM, 
+        OL.SEQ_NUM LINE_NUM, 
+        OL.PROD_NUM SKU, 
+        concat(p.PROD_DESC1,' ',p.PROD_DESC2) PROD_DESC,
+        ca.PLINE_DESC PROD_CATEGORY,
+        OL.UN_MEAS,
+        cast(OL.ORD_QTY as float) ORD_QTY, 
+        cast(OL.SHP_QTY as float) SHP_QTY, 
+        OL.NET_PRICE, 
+        /*OL.LINE_EXT*/ (OL.NET_PRICE * OL.SHP_QTY) EXT_PRICE,
+        OL.PROFIT_EXT, 
+        /*OL.NET_COST_EXT*/ (OL.ACCT_COST * OL.SHP_QTY) EXT_COST, 
         (INV_AMT - TOT_ORD_DOL) TAX,
-        t3.TOT_ORD_DOL,
-        t3.INV_AMT,
-        cast(t3.INV_DATE as datetime) INV_DATE, 
-        t3.INV_NUM,
-        substring(MISC_GL,14,17) GL_ACCOUNT_NUM,
-        t3.SEL_WHSE, 
-        case 
-            when t3.SEL_WHSE = '01' then 'Anaheim'
-            when t3.SEL_WHSE = '02' then 'Indio'
-            when t3.SEL_WHSE = '03' then 'El Cajon'
-            when t3.SEL_WHSE = '04' then 'Murrieta'
-            when t3.SEL_WHSE = '05' then 'Livermore'
-            when t3.SEL_WHSE = '06' then 'Ontario'
-            when t3.SEL_WHSE = '07' then 'San Dimas'
-            when t3.SEL_WHSE = '08' then 'Cathedral City'
-            when t3.SEL_WHSE = '09' then 'San Fernando'
-            when t3.SEL_WHSE = '10' then 'Visalia'
-            when t3.SEL_WHSE = '11' then 'San Antonio (PEP)'
-            when t3.SEL_WHSE = '12' then 'Vista'
-            when t3.SEL_WHSE = '13' then 'Austin (PEP)'
-            when t3.SEL_WHSE = '14' then 'Palm Springs'
-            when t3.SEL_WHSE = '15' then 'Corona'
-            when t3.SEL_WHSE = '16' then 'Bakersfield'
-            when t3.SEL_WHSE = '17' then 'Houston'
-            when t3.SEL_WHSE = '18' then 'Lake Forest'
-            when t3.SEL_WHSE = '19' then 'Moorpark'
-            when t3.SEL_WHSE = '20' then 'North Austin'
-            when t3.SEL_WHSE = '21' then 'Duarte'
-            when t3.SEL_WHSE = '22' then 'Yucaipa'
-            when t3.SEL_WHSE = '23' then 'Riverside'
-            when t3.SEL_WHSE = '24' then 'Long Beach'
-            when t3.SEL_WHSE = '25' then 'Palm Desert'
-            when t3.SEL_WHSE = '26' then 'Los Angeles'
-            when t3.SEL_WHSE = '27' then 'Tempe'
-            when t3.SEL_WHSE = '28' then 'Phoenix'
-            when t3.SEL_WHSE = '29' then 'Santa Ana'
-            when t3.SEL_WHSE = '30' then 'El Centro'
-            when t3.SEL_WHSE = '98' then 'Corporate Warehouse'
-            when t3.SEL_WHSE = '99' then 'Central Shipping Warehouse'
-                else t3.SEL_WHSE end SEL_WHSE_NAME,
-        t1.WHSE_NUM,
-        case 
-            when t1.WHSE_NUM = '01' then 'Anaheim'
-            when t1.WHSE_NUM = '02' then 'Indio'
-            when t1.WHSE_NUM = '03' then 'El Cajon'
-            when t1.WHSE_NUM = '04' then 'Murrieta'
-            when t1.WHSE_NUM = '05' then 'Livermore'
-            when t1.WHSE_NUM = '06' then 'Ontario'
-            when t1.WHSE_NUM = '07' then 'San Dimas'
-            when t1.WHSE_NUM = '08' then 'Cathedral City'
-            when t1.WHSE_NUM = '09' then 'San Fernando'
-            when t1.WHSE_NUM = '10' then 'Visalia'
-            when t1.WHSE_NUM = '11' then 'San Antonio (PEP)'
-            when t1.WHSE_NUM = '12' then 'Vista'
-            when t1.WHSE_NUM = '13' then 'Austin (PEP)'
-            when t1.WHSE_NUM = '14' then 'Palm Springs'
-            when t1.WHSE_NUM = '15' then 'Corona'
-            when t1.WHSE_NUM = '16' then 'Bakersfield'
-            when t1.WHSE_NUM = '17' then 'Houston'
-            when t1.WHSE_NUM = '18' then 'Lake Forest'
-            when t1.WHSE_NUM = '19' then 'Moorpark'
-            when t1.WHSE_NUM = '20' then 'North Austin'
-            when t1.WHSE_NUM = '21' then 'Duarte'
-            when t1.WHSE_NUM = '22' then 'Yucaipa'
-            when t1.WHSE_NUM = '23' then 'Riverside'
-            when t1.WHSE_NUM = '24' then 'Long Beach'
-            when t1.WHSE_NUM = '25' then 'Palm Desert'
-            when t1.WHSE_NUM = '26' then 'Los Angeles'
-            when t1.WHSE_NUM = '27' then 'Tempe'
-            when t1.WHSE_NUM = '28' then 'Phoenix'
-            when t1.WHSE_NUM = '29' then 'Santa Ana'
-            when t1.WHSE_NUM = '30' then 'El Centro'
-            when t1.WHSE_NUM = '98' then 'Corporate Warehouse'
-            when t1.WHSE_NUM = '99' then 'Central Shipping Warehouse'
-                else t1.WHSE_NUM end WHSE_NAME,
-        datename(month,t3.INV_DATE) MONTH_NAME
-        from Prelude.dbo.ORDER_HISTORY_LINE_IJO_1 t1 
-        left join Prelude.dbo.ORDER_HIST_LINE_KEY__MV_SUB t2 on t1.ID = t2.LINE_KEY
-        left join Prelude.dbo.ORDER_HISTORY_IJO t3 on t2.ID = t3.ID
-        left join Prelude.dbo.CUSTOMER_IJO cu on t3.CUST_NUM = cu.CUST_NUM
-        left join Prelude.dbo.SSProduct p on t1.PROD_NUM = p.PROD_NUM
-        left join Prelude.dbo.CATEGORY_IJO ca on p.PLINE_NUM = ca.PLINE_NUM
-        where INV_DATE >= '2020-01-01' and t1.PROD_NUM not in ('C','CSB','CS','CI','CN','CP','MN') and cu.CUST_NUM not like '%CLOSED' and p.CO_NUM = '001' and ca.CO_NUM = '001'
-        group by 
-            t3.CUST_NUM,
-            t3.ORD_DATE, 
-            t3.ORD_NUM, 
-            t1.SEQ_NUM, 
-            t1.PROD_NUM, 
-            p.PROD_DESC1,
-            ca.PLINE_DESC,
-            t1.ORD_QTY, 
-            t1.SHP_QTY, 
-            t1.NET_PRICE, 
-            t1.LINE_EXT,
-            t1.PROFIT_EXT, 
-            t1.NET_COST_EXT, 
-            t3.TOT_ORD_DOL,
-            t3.INV_AMT,
-            t3.INV_DATE, 
-            t3.INV_NUM,
-            t1.MISC_GL,
-            t3.SEL_WHSE, 
-            t1.WHSE_NUM
+        OH.TOT_ORD_DOL,
+        OH.INV_AMT,
+        cast(OH.INV_DATE as datetime) INV_DATE, 
+        OH.INV_NUM,
+        min(substring(MISC_GL,14,17)) GL_ACCOUNT_NUM,
+        OL.WHSE_NUM,
+        case	 
+            when OL.WHSE_NUM = '01' then 'PEP - ANAHEIM CA'
+            when OL.WHSE_NUM = '02' then 'PEP - INDIO CA'
+            when OL.WHSE_NUM = '03' then 'PEP - EL CAJON CA'
+            when OL.WHSE_NUM = '04' then 'PEP - MURRIETA CA'
+            when OL.WHSE_NUM = '05' then 'PEP - LIVERMORE CA'
+            when OL.WHSE_NUM = '06' then 'PEP - ONTARIO CA'
+            when OL.WHSE_NUM = '07' then 'PEP - SAN DIMAS CA'
+            when OL.WHSE_NUM = '08' then 'PEP - CATHEDRAL CITY CA'
+            when OL.WHSE_NUM = '09' then 'PEP - SAN FERNANDO CA'
+            when OL.WHSE_NUM = '10' then 'PEP - VISALIA CA'
+            when OL.WHSE_NUM = '11' then 'PEP - SAN ANTONIO TX'
+            when OL.WHSE_NUM = '12' then 'PEP - VISTA CA'
+            when OL.WHSE_NUM = '13' then 'PEP - AUSTIN TX'
+            when OL.WHSE_NUM = '14' then 'PEP - PALM SPRINGS CA'
+            when OL.WHSE_NUM = '15' then 'PEP - CORONA CA'
+            when OL.WHSE_NUM = '16' then 'PEP - BAKERSFIELD CA'
+            when OL.WHSE_NUM = '17' then 'PEP - HOUSTON TX'
+            when OL.WHSE_NUM = '18' then 'PEP - LAKE FOREST CA'
+            when OL.WHSE_NUM = '19' then 'PEP - MOORPARK CA'
+            when OL.WHSE_NUM = '20' then 'PEP - NORTH AUSTIN TX'
+            when OL.WHSE_NUM = '21' then 'PEP - DUARTE CA'
+            when OL.WHSE_NUM = '22' then 'PEP - YUCAIPA CA'
+            when OL.WHSE_NUM = '23' then 'PEP - RIVERSIDE CA'
+            when OL.WHSE_NUM = '24' then 'PEP - LONG BEACH CA'
+            when OL.WHSE_NUM = '25' then 'PEP - PALM DESERT CA'
+            when OL.WHSE_NUM = '26' then 'PEP - LOS ANGELES CA'
+            when OL.WHSE_NUM = '27' then 'PEP - TEMPE AZ'
+            when OL.WHSE_NUM = '28' then 'PEP - PHOENIX AZ'
+            when OL.WHSE_NUM = '29' then 'PEP - SANTA ANA CA'
+            when OL.WHSE_NUM = '30' then 'PEP - EL CENTRO CA'
+            when OL.WHSE_NUM = '98' then 'PEP - CORPORATE WAREHOUSE'
+            when OL.WHSE_NUM = '99' then 'PEP - CENTRAL SHIPPING WAREHOUSE'
+                else OL.WHSE_NUM end WHSE_NAME,
+        OH.SEL_WHSE, 
+        case	 
+            when OH.SEL_WHSE = '01' then 'PEP - ANAHEIM CA'
+            when OH.SEL_WHSE = '02' then 'PEP - INDIO CA'
+            when OH.SEL_WHSE = '03' then 'PEP - EL CAJON CA'
+            when OH.SEL_WHSE = '04' then 'PEP - MURRIETA CA'
+            when OH.SEL_WHSE = '05' then 'PEP - LIVERMORE CA'
+            when OH.SEL_WHSE = '06' then 'PEP - ONTARIO CA'
+            when OH.SEL_WHSE = '07' then 'PEP - SAN DIMAS CA'
+            when OH.SEL_WHSE = '08' then 'PEP - CATHEDRAL CITY CA'
+            when OH.SEL_WHSE = '09' then 'PEP - SAN FERNANDO CA'
+            when OH.SEL_WHSE = '10' then 'PEP - VISALIA CA'
+            when OH.SEL_WHSE = '11' then 'PEP - SAN ANTONIO TX'
+            when OH.SEL_WHSE = '12' then 'PEP - VISTA CA'
+            when OH.SEL_WHSE = '13' then 'PEP - AUSTIN TX'
+            when OH.SEL_WHSE = '14' then 'PEP - PALM SPRINGS CA'
+            when OH.SEL_WHSE = '15' then 'PEP - CORONA CA'
+            when OH.SEL_WHSE = '16' then 'PEP - BAKERSFIELD CA'
+            when OH.SEL_WHSE = '17' then 'PEP - HOUSTON TX'
+            when OH.SEL_WHSE = '18' then 'PEP - LAKE FOREST CA'
+            when OH.SEL_WHSE = '19' then 'PEP - MOORPARK CA'
+            when OH.SEL_WHSE = '20' then 'PEP - NORTH AUSTIN TX'
+            when OH.SEL_WHSE = '21' then 'PEP - DUARTE CA'
+            when OH.SEL_WHSE = '22' then 'PEP - YUCAIPA CA'
+            when OH.SEL_WHSE = '23' then 'PEP - RIVERSIDE CA'
+            when OH.SEL_WHSE = '24' then 'PEP - LONG BEACH CA'
+            when OH.SEL_WHSE = '25' then 'PEP - PALM DESERT CA'
+            when OH.SEL_WHSE = '26' then 'PEP - LOS ANGELES CA'
+            when OH.SEL_WHSE = '27' then 'PEP - TEMPE AZ'
+            when OH.SEL_WHSE = '28' then 'PEP - PHOENIX AZ'
+            when OH.SEL_WHSE = '29' then 'PEP - SANTA ANA CA'
+            when OH.SEL_WHSE = '30' then 'PEP - EL CENTRO CA'
+            when OH.SEL_WHSE = '98' then 'PEP - CORPORATE WAREHOUSE'
+            when OH.SEL_WHSE = '99' then 'PEP - CENTRAL SHIPPING WAREHOUSE'
+                else OH.SEL_WHSE end SEL_WHSE_NAME--,
+        --year(OH.INV_DATE) YEAR,
+        --datename(month,OH.INV_DATE) MONTH_NAME
+    from Prelude.dbo.ORDER_HISTORY_LINE_IJO_1 OL
+    left join Prelude.dbo.ORDER_HISTORY_NF_IJO OH on substring(OL.ID,1,11) = OH.ID
+    left join Prelude.dbo.CUSTOMER_IJO CU on OH.CUST_NUM = cu.CUST_NUM
+    left join Prelude.dbo.CUST_TYPE_1_NF CT on cu.TYPE = CT.CT_NUM 
+    left join Prelude.dbo.PRODUCT_IJO P on OL.PROD_NUM = p.PROD_NUM
+    left join Prelude.dbo.CATEGORY_IJO CA on p.PLINE_NUM = ca.PLINE_NUM
+    left join Prelude.dbo.USER_ID_NF U on OH.USER_ID = u.USER_NUM
+    where year(INV_DATE) >= 2019 and p.CO_NUM = '001' and ca.CO_NUM = '001' --and substring(MISC_GL,14,17) like '400%'
+        --and OL.PROD_NUM not in ('C','CSB','CS','CI','CN','CP','MN') --and cu.CUST_NUM not like '%CLOSED'*/
+    group by 
+        CT.CT_DESC,
+        OH.CUST_NUM,
+        OH.USER_ID,
+        U.USER_DESC,
+        OH.SHIP_VIA_NUM,
+        OH.ORD_DATE,
+        OH.CUST_PO_NUM,
+        OH.ORD_NUM, 
+        OL.SEQ_NUM, 
+        OL.PROD_NUM, 
+        p.PROD_DESC1, 
+        p.PROD_DESC2,
+        ca.PLINE_DESC,
+        OL.UN_MEAS,
+        OL.ORD_QTY, 
+        OL.SHP_QTY, 
+        OL.NET_PRICE, 
+        --OL.LINE_EXT,
+        OL.PROFIT_EXT, 
+        --OL.NET_COST_EXT, 
+        OL.ACCT_COST,
+        OH.TOT_ORD_DOL,
+        OH.INV_AMT,
+        OH.INV_DATE, 
+        OH.INV_NUM,
+        OL.MISC_GL,
+        OH.SEL_WHSE, 
+        OL.WHSE_NUM
 )"""
 
 pep_df = spark.read.format("jdbc") \
@@ -165,7 +182,7 @@ pep_df = spark.read.format("jdbc") \
 mode = "overwrite"
 url = "jdbc:postgresql://db-cluster.cluster-ce0xsttrdwys.us-east-2.rds.amazonaws.com:5432/analytics"
 properties = {"user": "postgres","password": "kHSmwnXWrG^L3N$V2PXPpY22*47","driver": "org.postgresql.Driver"}
-pep_df.write.jdbc(url=url, table="sales.pep_sales", mode=mode, properties=properties)
+pep_df.write.jdbc(url=url, table="sales.pep_sales_new", mode=mode, properties=properties)
 
 
 logger.info("******** END READING PEP *************")
@@ -178,108 +195,76 @@ logger.info("******** START READING FWP *************")
 
 fwp_url = "jdbc:sqlserver://128.1.100.9:1433;databaseName=CommerceCenter"
 fwp_query = """(
-    select distinct
+    select distinct --top(100)
         'FWP' as company,
+        c.class_1id customer_type,
         ih.customer_id, 
         ih.bill2_name customer_name, 
         ih.bill2_city customer_city,
         ih.bill2_state customer_state,
+        oh.taker created_by,
+        u.name created_by_name,
+        /*case when il.created_by like 'FWPNET\%' then replace(il.created_by,'FWPNET\','')
+            when il.created_by like 'poolelectrical\%' then replace(il.created_by, 'poolelectrical\', '')
+            else il.created_by end sales_rep,*/
+        oh.front_counter trans_type,
         ih.order_date, 
+        ol.cust_po_no,
         il.order_no, 
-        cast(il.line_no as varchar) line_no, 
+        /*cast(il.line_no as varchar)*/ ol.line_no, 
         il.item_id prod_num, 
         il.item_desc prod_desc, 
         pg.product_group_desc prod_group,
+        il.unit_of_measure,
         cast(qty_requested as float) qty_ordered, 
         cast(qty_shipped as float) qty_shipped, 
-        unit_price, 
-        extended_price,
-        (extended_price - cogs_amount) profit_amount,
-        cogs_amount, 
-        tax_amount, 
-        amount_paid paid_amount, 
-        total_amount invoice_amount, 
-        invoice_date, 
+        il.unit_price, 
+        il.extended_price,
+        (il.extended_price - il.cogs_amount) profit_amount,
+        il.cogs_amount, 
+        ih.tax_amount, 
+        ih.amount_paid paid_amount, 
+        ih.total_amount invoice_amount, 
+        ih.invoice_date, 
         ih.invoice_no, 
-        gl_revenue_account_no,
+        il.gl_revenue_account_no,
         cast(ih.sales_location_id as varchar) sales_location_id,
-        case 
-            when sales_location_id = 1 or sales_location_id = 10 then 'Tampa'
-            when sales_location_id = 20 then 'Spring Hill'
-            when sales_location_id = 30 then 'Port Charlotte'
-            when sales_location_id = 35 then 'Sarasota'
-            when sales_location_id = 40 then 'North Miami'
-            when sales_location_id = 50 then 'Naples'
-            when sales_location_id = 60 then 'West Palm Beach'
-            when sales_location_id = 70 then 'Melbourne'
-            when sales_location_id = 80 then 'Fulfillment'
-            when sales_location_id = 90 then 'Conroe'
-            when sales_location_id = 100 then 'Katy'
-            when sales_location_id = 110 then 'Austin (FWP)'
-            when sales_location_id = 120 then 'Plano'
-            when sales_location_id = 130 then 'San Antonio (FWP)'
-            when sales_location_id = 140 then 'Fort Worth'
-            when sales_location_id = 200 then 'Meade'
-            when sales_location_id = 210 then 'La Costa'
-            when sales_location_id = 220 then 'Henderson'
-            when sales_location_id = 250 then 'St. George'
-            when sales_location_id = 304 then 'Murrieta'
-            when sales_location_id = 305 then 'Livermore'
-            when sales_location_id = 330 then 'El Centro'
-            when sales_location_id = 331 then 'Rancho Cordova'
-            when sales_location_id = 9289 then 'Warranty West Coast'
-            when sales_location_id = 9290 then 'Warranty American'
-                else sl.location_name end sales_location_name,
+        b1.branch_description sales_location_name,
         ih.branch_id,
-        case 
-            when ih.branch_id = 1 or ih.branch_id = 10 then 'Tampa'
-            when ih.branch_id = 20 then 'Spring Hill'
-            when ih.branch_id = 30 then 'Port Charlotte'
-            when ih.branch_id = 35 then 'Sarasota'
-            when ih.branch_id = 40 then 'North Miami'
-            when ih.branch_id = 50 then 'Naples'
-            when ih.branch_id = 60 then 'West Palm Beach'
-            when ih.branch_id = 70 then 'Melbourne'
-            when ih.branch_id = 80 then 'Fulfillment'
-            when ih.branch_id = 90 then 'Conroe'
-            when ih.branch_id = 100 then 'Katy'
-            when ih.branch_id = 110 then 'Austin (FWP)'
-            when ih.branch_id = 120 then 'Plano'
-            when ih.branch_id = 130 then 'San Antonio (FWP)'
-            when ih.branch_id = 140 then 'Fort Worth'
-            when ih.branch_id = 200 then 'Meade'
-            when ih.branch_id = 210 then 'La Costa'
-            when ih.branch_id = 220 then 'Henderson'
-            when ih.branch_id = 250 then 'St. George'
-            when ih.branch_id = 304 then 'Murrieta'
-            when ih.branch_id = 305 then 'Livermore'
-            when ih.branch_id = 330 then 'El Centro'
-            when ih.branch_id = 331 then 'Rancho Cordova'
-            when ih.branch_id = 9289 then 'Warranty West Coast'
-            when ih.branch_id = 9290 then 'Warranty American'
-                else bl.location_name end branch_location_name,
-        datename(month,invoice_date) month_name
-    from CommerceCenter.dbo.invoice_hdr ih 
-    left join CommerceCenter.dbo.invoice_line il on ih.invoice_no = il.invoice_no
-    left join CommerceCenter.dbo.location sl on ih.sales_location_id = sl.location_id
-    left join CommerceCenter.dbo.location bl on ih.branch_id = bl.location_id
+        b2.branch_description branch_name--,
+        --year(invoice_date) year,
+        --datename(month,invoice_date) month_name
+    from CommerceCenter.dbo.invoice_line il
+    left join CommerceCenter.dbo.invoice_hdr ih on il.invoice_no = ih.invoice_no
+    join CommerceCenter.dbo.oe_line ol on il.order_no = ol.order_no and il.customer_part_number = ol.customer_part_number
+    left join CommerceCenter.dbo.oe_hdr oh on ol.order_no = oh.order_no
+    left join CommerceCenter.dbo.branch b1 on ih.sales_location_id = b1.branch_id
+    left join CommerceCenter.dbo.branch b2 on ih.branch_id = b2.branch_id
     left join CommerceCenter.dbo.product_group pg on il.product_group_id = pg.product_group_id
-    where year(invoice_date) >= 2020 and gl_revenue_account_no like '4000%' and il.order_no is not null
+    left join CommerceCenter.dbo.customer c on ih.customer_id = c.customer_id
+    left join CommerceCenter.dbo.users u on oh.taker = u.id
+    where year(invoice_date) >= 2019 and gl_revenue_account_no like '4000%' and il.invoice_line_type = '0' and ih.invoice_adjustment_type = 'I'
     group by 
+        c.class_1id,
         ih.customer_id, 
         ih.bill2_name, 
         ih.bill2_city,
         ih.bill2_state,
-        order_date, 
+        oh.taker,
+        u.name,
+        oh.front_counter,
+        ih.order_date, 
+        ol.cust_po_no,
         il.order_no, 
-        line_no, 
+        ol.line_no, 
         item_id, 
         item_desc, 
         pg.product_group_desc,
+        il.unit_of_measure,
         qty_requested, 
         qty_shipped, 
-        unit_price, 
-        extended_price,
+        il.unit_price, 
+        il.extended_price,
         cogs_amount, 
         tax_amount, 
         amount_paid, 
@@ -288,9 +273,9 @@ fwp_query = """(
         ih.invoice_no, 
         gl_revenue_account_no,
         sales_location_id, 
-        sl.location_name,
-        branch_id, 
-        bl.location_name
+        b1.branch_description,
+        ih.branch_id, 
+        b2.branch_description
 )"""
 
 fwp_df = spark.read.format("jdbc") \
@@ -303,7 +288,7 @@ fwp_df = spark.read.format("jdbc") \
 mode = "overwrite"
 url = "jdbc:postgresql://db-cluster.cluster-ce0xsttrdwys.us-east-2.rds.amazonaws.com:5432/analytics"
 properties = {"user": "postgres","password": "kHSmwnXWrG^L3N$V2PXPpY22*47","driver": "org.postgresql.Driver"}
-fwp_df.write.jdbc(url=url, table="sales.fwp_sales", mode=mode, properties=properties)
+fwp_df.write.jdbc(url=url, table="sales.fwp_sales_new", mode=mode, properties=properties)
 
 
 logger.info("******** END READING FWP *************")
