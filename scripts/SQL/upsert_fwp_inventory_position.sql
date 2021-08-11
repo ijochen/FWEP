@@ -7,7 +7,7 @@ begin
         select * from warehouse.inventory_position_incremental
         except
         select * from warehouse.inventory_position
-        ) t1
+        ) t1;
 	
 END ;
 $$
