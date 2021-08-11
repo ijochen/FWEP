@@ -20,7 +20,9 @@ BEGIN
         "Regional Leader" regional_leader,
         "City" city,
         "Location ID" location_id, 
-        "Region" region       
+        "Region" region,
+        "Manager" manager,
+        "Time Zone" time_zone       
         from sales.invoice_data_merged sidm
         left join warehouse.regional_mgmt_mapping_data rmmd on sidm.branch = rmmd."City"
     ) a;
