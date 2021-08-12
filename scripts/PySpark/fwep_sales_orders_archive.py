@@ -30,7 +30,10 @@ logger.info("******** START READING PEP *************")
 # Invoice last 30 days
 pep_url = "jdbc:sqlserver://128.1.100.9:1433;databaseName=Prelude"
 pep_query = """(
-	select distinct --top(100)
+--pep 2019 sales 899,784 rows
+--pep 2020 sales 899,784 rows
+--pep 2021 sales 3,647,026 rows
+	select distinct --top(1000)
 		'PEP' as COMPANY,
 		CT.CT_DESC CUST_TYPE,
 		OH.CUST_NUM, 
@@ -131,7 +134,7 @@ pep_query = """(
 		OH.SHIP_VIA_NUM,
 		S.SHIP_VIA_DESC,
 		cast(OH.ORD_DATE as date) ORD_DATE, 
-		cast(OL.PCK_DATE as date) PCK_DATE,
+		cast(OH.PCK_DATE as date) PCK_DATE,
 		cast(OH.REQ_DATE as date) REQ_DATE
 	from Prelude.dbo.ORDER_HISTORY_LINE_IJO_1 OL
 	left join Prelude.dbo.ORDER_HISTORY_NF_IJO OH on substring(OL.ID,1,11) = OH.ID
@@ -141,7 +144,8 @@ pep_query = """(
 	left join Prelude.dbo.CATEGORY_IJO CA on p.PLINE_NUM = ca.PLINE_NUM
 	left join Prelude.dbo.USER_ID_NF U on OH.USER_ID = u.USER_NUM
 	left join Prelude.dbo.SHIP_VIA_NF_IJO S on oh.SHIP_VIA_NUM = s.SHIP_VIA_NUM
-	where year(OH.INV_DATE) >= 2019 and p.CO_NUM = '001' and ca.CO_NUM = '001' 
+	where year(OH.INV_DATE) = 2021 and p.CO_NUM = '001' and ca.CO_NUM = '001' 
+	--where OH.INV_DATE >= dateadd(day,-60,getdate()) and p.CO_NUM = '001' and ca.CO_NUM = '001' 
 	group by 
 		CT.CT_DESC,
 		OH.CUST_NUM,
@@ -174,7 +178,7 @@ pep_query = """(
 		OH.SHIP_VIA_NUM,
 		S.SHIP_VIA_DESC,
 		OH.ORD_DATE,
-		OL.PCK_DATE,
+		OH.PCK_DATE,
 		OH.REQ_DATE
 )"""
 
@@ -188,7 +192,7 @@ pep_df = spark.read.format("jdbc") \
 mode = "overwrite"
 url = "jdbc:postgresql://db-cluster.cluster-ce0xsttrdwys.us-east-2.rds.amazonaws.com:5432/analytics"
 properties = {"user": "postgres","password": "kHSmwnXWrG^L3N$V2PXPpY22*47","driver": "org.postgresql.Driver"}
-pep_df.write.jdbc(url=url, table="sales.pep_sales_new", mode=mode, properties=properties)
+pep_df.write.jdbc(url=url, table="sales.pep_sales_2021", mode=mode, properties=properties)
 
 
 logger.info("******** END READING PEP *************")
@@ -196,109 +200,112 @@ logger.info("******** END READING PEP *************")
 
 # 2) Load FWP - Read from Sql Server and write to Data Warehouse
 
-logger.info("******** START READING FWP *************")
+# logger.info("******** START READING FWP *************")
 
 
-fwp_url = "jdbc:sqlserver://128.1.100.9:1433;databaseName=CommerceCenter"
-fwp_query = """(
-	select distinct --top(100)
-		'FWP' as company,
-		c.class_1id customer_type,
-		ih.customer_id, 
-		ih.bill2_name customer_name, 
-		ih.bill2_city customer_city,
-		ih.bill2_state customer_state,
-		oh.taker created_by,
-		u.name created_by_name,
-		ol.cust_po_no,
-		il.order_no, 
-		ol.line_no, 
-		il.item_id prod_num, 
-		il.item_desc prod_desc, 
-		pg.product_group_desc prod_group,
-		il.unit_of_measure,
-		cast(qty_requested as float) qty_ordered, 
-		cast(qty_shipped as float) qty_shipped, 
-		il.unit_price, 
-		il.extended_price,
-		(il.extended_price - il.cogs_amount) profit_amount,
-		il.cogs_amount, 
-		ih.tax_amount, 
-		ih.amount_paid paid_amount, 
-		ih.total_amount invoice_amount, 
-		cast(ih.invoice_date as date) invoice_date, 
-		ih.invoice_no, 
-		il.gl_revenue_account_no,
-		cast(ih.sales_location_id as varchar) sales_location_id,
-		b1.branch_description sales_location_name,
-		ih.branch_id,
-		b2.branch_description branch_name,
-		oh.front_counter trans_type,
-		case when oh.front_counter = 'Y' then 'FRONT COUNTER'
-			when oh.front_counter = 'N' then 'DELIVERY' end trans_desc,
-		cast(ih.order_date as date) order_date, 
-		cast(ih.ship_date as date) ship_date,
-		cast(ol.required_date as date) required_date
-	from CommerceCenter.dbo.invoice_line il
-	left join CommerceCenter.dbo.invoice_hdr ih on il.invoice_no = ih.invoice_no
-	join CommerceCenter.dbo.oe_line ol on il.order_no = ol.order_no and il.customer_part_number = ol.customer_part_number
-	left join CommerceCenter.dbo.oe_hdr oh on ol.order_no = oh.order_no
-	left join CommerceCenter.dbo.branch b1 on ih.sales_location_id = b1.branch_id
-	left join CommerceCenter.dbo.branch b2 on ih.branch_id = b2.branch_id
-	left join CommerceCenter.dbo.product_group pg on il.product_group_id = pg.product_group_id
-	left join CommerceCenter.dbo.customer c on ih.customer_id = c.customer_id
-	left join CommerceCenter.dbo.users u on oh.taker = u.id
-	where year(invoice_date) >= 2019 and gl_revenue_account_no like '4000%' and il.invoice_line_type = '0' and ih.invoice_adjustment_type = 'I'
-	group by 
-		c.class_1id,
-		ih.customer_id, 
-		ih.bill2_name, 
-		ih.bill2_city,
-		ih.bill2_state,
-		oh.taker,
-		u.name,
-		ol.cust_po_no,
-		il.order_no, 
-		ol.line_no, 
-		item_id, 
-		item_desc, 
-		pg.product_group_desc,
-		il.unit_of_measure,
-		qty_requested, 
-		qty_shipped, 
-		il.unit_price, 
-		il.extended_price,
-		cogs_amount, 
-		tax_amount, 
-		amount_paid, 
-		total_amount, 
-		invoice_date, 
-		ih.invoice_no, 
-		gl_revenue_account_no,
-		sales_location_id, 
-		b1.branch_description,
-		ih.branch_id, 
-		b2.branch_description,
-		oh.front_counter,
-		ih.order_date, 
-		ih.ship_date,
-		ol.required_date
-)"""
+# fwp_url = "jdbc:sqlserver://128.1.100.9:1433;databaseName=CommerceCenter"
+# fwp_query = """(
+# --fwp 2019 sales 956,751 rows
+# --fwp 2020 sales 1,077,202 rows
+# --fwp 2021 sales 732,674 rows
+# 	select distinct --top(100)
+# 		'FWP' as company,
+# 		c.class_1id customer_type,
+# 		ih.customer_id, 
+# 		ih.bill2_name customer_name, 
+# 		ih.bill2_city customer_city,
+# 		ih.bill2_state customer_state,
+# 		oh.taker created_by,
+# 		u.name created_by_name,
+# 		ol.cust_po_no,
+# 		ol.order_no, 
+# 		ol.line_no, 
+# 		il.item_id prod_num, 
+# 		il.item_desc prod_desc, 
+# 		pg.product_group_desc prod_group,
+# 		il.unit_of_measure,
+# 		cast(qty_requested as float) qty_ordered, 
+# 		cast(qty_shipped as float) qty_shipped, 
+# 		il.unit_price, 
+# 		il.extended_price,
+# 		(il.extended_price - il.cogs_amount) profit_amount,
+# 		il.cogs_amount, 
+# 		ih.tax_amount, 
+# 		ih.amount_paid paid_amount, 
+# 		ih.total_amount invoice_amount, 
+# 		cast(ih.invoice_date as date) invoice_date, 
+# 		ih.invoice_no, 
+# 		il.gl_revenue_account_no,
+# 		cast(ih.sales_location_id as varchar) sales_location_id,
+# 		b1.branch_description sales_location_name,
+# 		ih.branch_id,
+# 		b2.branch_description branch_name,
+# 		oh.front_counter trans_type,
+# 		case when oh.front_counter = 'Y' then 'FRONT COUNTER'
+# 			when oh.front_counter = 'N' then 'DELIVERY' end trans_desc,
+# 		cast(ih.order_date as date) order_date, 
+# 		cast(ih.ship_date as date) ship_date,
+# 		cast(ol.required_date as date) required_date
+# 	from CommerceCenter.dbo.invoice_line il
+# 	left join CommerceCenter.dbo.invoice_hdr ih on il.invoice_no = ih.invoice_no
+# 	join CommerceCenter.dbo.oe_line ol on il.order_no = ol.order_no and il.oe_line_number = ol.line_no-- and il.customer_part_number = ol.customer_part_number
+# 	left join CommerceCenter.dbo.oe_hdr oh on ol.order_no = oh.order_no
+# 	left join CommerceCenter.dbo.branch b1 on ih.sales_location_id = b1.branch_id
+# 	left join CommerceCenter.dbo.branch b2 on ih.branch_id = b2.branch_id
+# 	left join CommerceCenter.dbo.product_group pg on il.product_group_id = pg.product_group_id
+# 	left join CommerceCenter.dbo.customer c on ih.customer_id = c.customer_id
+# 	left join CommerceCenter.dbo.users u on oh.taker = u.id
+# 	where year(invoice_date) = 2021 and gl_revenue_account_no like '4000%' and il.invoice_line_type = '0' and ih.invoice_adjustment_type = 'I'
+# 	group by 
+# 		c.class_1id,
+# 		ih.customer_id, 
+# 		ih.bill2_name, 
+# 		ih.bill2_city,
+# 		ih.bill2_state,
+# 		oh.taker,
+# 		u.name,
+# 		ol.cust_po_no,
+# 		ol.order_no, 
+# 		ol.line_no, 
+# 		item_id, 
+# 		item_desc, 
+# 		pg.product_group_desc,
+# 		il.unit_of_measure,
+# 		qty_requested, 
+# 		qty_shipped, 
+# 		il.unit_price, 
+# 		il.extended_price,
+# 		cogs_amount, 
+# 		tax_amount, 
+# 		amount_paid, 
+# 		total_amount, 
+# 		invoice_date, 
+# 		ih.invoice_no, 
+# 		gl_revenue_account_no,
+# 		sales_location_id, 
+# 		b1.branch_description,
+# 		ih.branch_id, 
+# 		b2.branch_description,
+# 		oh.front_counter,
+# 		ih.order_date, 
+# 		ih.ship_date,
+# 		ol.required_date
+# )"""
 
-fwp_df = spark.read.format("jdbc") \
-   .option("url", fwp_url) \
-   .option("query", fwp_query) \
-   .option("user", "ichen") \
-   .option("password", "Qwer1234$") \
-   .load()
+# fwp_df = spark.read.format("jdbc") \
+#    .option("url", fwp_url) \
+#    .option("query", fwp_query) \
+#    .option("user", "ichen") \
+#    .option("password", "Qwer1234$") \
+#    .load()
    
-mode = "overwrite"
-url = "jdbc:postgresql://db-cluster.cluster-ce0xsttrdwys.us-east-2.rds.amazonaws.com:5432/analytics"
-properties = {"user": "postgres","password": "kHSmwnXWrG^L3N$V2PXPpY22*47","driver": "org.postgresql.Driver"}
-fwp_df.write.jdbc(url=url, table="sales.fwp_sales_new", mode=mode, properties=properties)
+# mode = "overwrite"
+# url = "jdbc:postgresql://db-cluster.cluster-ce0xsttrdwys.us-east-2.rds.amazonaws.com:5432/analytics"
+# properties = {"user": "postgres","password": "kHSmwnXWrG^L3N$V2PXPpY22*47","driver": "org.postgresql.Driver"}
+# fwp_df.write.jdbc(url=url, table="sales.fwp_sales_2021", mode=mode, properties=properties)
 
 
-logger.info("******** END READING FWP *************")
+# logger.info("******** END READING FWP *************")
 
 
 job.commit()
