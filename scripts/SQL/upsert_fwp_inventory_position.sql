@@ -1,16 +1,44 @@
+--DROP FUNCTION warehouse.upsert_fwp_inventory_position()
+
 CREATE FUNCTION warehouse.upsert_fwp_inventory_position() RETURNS void AS $$
-begin
+BEGIN
 	
-	--Insert item in locations where quantities has changed so we can see the trends 
-	insert into warehouse.inventory_position
-    select *, current_date trans_date from (
-        select ipi.location_id, ipi.branch_description, ipi.item_group, ipi.item_id, ipi.item_desc, ipi.qty_on_hand, ipi.qty_allocated, ipi.qty_available
-        from warehouse.inventory_position_incremental ipi
-        except
-        select ip.location_id, ip.branch_description, ip.item_group, ip.item_id, ip.item_desc, ip.qty_on_hand, ip.qty_allocated, ip.qty_available 
-        from warehouse.inventory_position ip
-        ) t1;
+    --Create table that counts the duplicates
+    DROP TABLE IF EXISTS warehouse.inventory_position_count;
+
+    CREATE TABLE warehouse.inventory_position_count as 
+    SELECT *, COUNT(item_id) OVER( PARTITION BY location_id, item_id, qty_on_hand, qty_allocated, qty_available) COUNT
+    FROM (
+        SELECT * FROM warehouse.inventory_position_interim
+        UNION
+        SELECT *, CURRENT_DATE trans_date FROM warehouse.inventory_position_incremental
+    ) t1;
+
+
+    --create a table that ranks the duplicates by dates to see which was the original record
+    DROP TABLE IF EXISTS warehouse.inventory_position_rank;
+
+    CREATE TABLE warehouse.inventory_position_rank as 
+    SELECT *, dense_rank OVER( PARTITION BY location_id, item_id, count order by count, trans_date asc) rank
+    FROM (
+        SELECT * FROM warehouse.inventory_position_count
+    ) t2;
+
+    DELETE FROM warehouse.inventory_position_rank 
+    WHERE count = 2 and rank = 2;
+
+    TRUNCATE TABLE warehouse.inventory_position;
+
+    INSERT INTO warehouse.inventory_position
+    SELECT location_id, branch_description, item_group, item_id, item_desc, avg_fifo_cost, qty_on_hand, qty_allocated, qty_available, trans_date
+    FROM warehouse.inventory_position_rank;
+
+    DROP TABLE IF EXISTS warehouse.inventory_position_count, warehouse.inventory_position_rank ;
+
 	
 END ;
 $$
 LANGUAGE plpgsql ;
+
+
+--SELECT warehouse.upsert_fwp_inventory_position()
