@@ -9,9 +9,9 @@ begin
 	DROP TABLE IF EXISTS sales.invoice_data_merged;
 	
     create table sales.invoice_data_merged as 
-    select *
+    select distinct *
 	from (
-		(select
+		(select distinct
 			null as order_no,
 			"INV_NUM" as invoice_no,
 			cast("INV_DATE" as timestamp) as invoice_date, 
@@ -54,37 +54,72 @@ begin
 			'PEP' as company
 		from sales.pep_invoice_data i
 		left join sales.pep_customer c
-			on i."CUST_NUM" = c."CUST_NUM")
+			on i."CUST_NUM" = c."CUST_NUM"
+		where i."CUST_NUM" <> '0FWPCORP'
+		)
 		
-		union 
-		(select 
+		union all
+		
+		(select distinct
 			order_no,
 			invoice_no,
 			cast(invoice_date as timestamp) as invoice_date,
             --rename the branches to proper case to prevent random aliases in tableau workbook
 			case 
-                when branch_description = 'APS - HENDERSON NV' then 'Henderson'
-                when branch_description = 'APS - LA COSTA NV' then 'La Costa'
-                when branch_description = 'APS - MEADE NV' then 'Meade'
-                when branch_description = 'APS - ST GEORGE UT' then 'St. George'
-                when branch_description = 'FWP - AUSTIN TX' then 'Austin (FWP)'
-                when branch_description = 'FWP - BONITA SPRINGS FL' then 'Naples'
-                when branch_description = 'FWP - CONROE TX' then 'Conroe'
-                when branch_description = 'FWP - FORT WORTH TX' then 'Fort Worth'
-                when branch_description = 'FWP - FULFILLMENT' then 'Fulfillment'
-                when branch_description = 'FWP - KATY TX' then 'Katy'
-                when branch_description = 'FWP - MELBOURNE FL' then 'Melbourne'
-                when branch_description = 'FWP - NORTH MIAMI FL' then 'North Miami'
-                when branch_description = 'FWP - PLANO TX' then 'Plano'
-                when branch_description = 'FWP - PORT CHARLOTTE FL' then 'Port Charlotte'
-                when branch_description = 'FWP - SAN ANTONIO TX' then 'San Antonio (FWP)'
-                when branch_description = 'FWP - SARASOTA FL' then 'Sarasota'
-                when branch_description = 'FWP - SPRINGHILL FL' then 'Spring Hill'
-                when branch_description = 'FWP - TAMPA  FL' then 'Tampa'
-                when branch_description = 'FWP - WEST PALM BEACH FL' then 'West Palm Beach'
-                when branch_description = 'PEP - EL CENTRO CA' then 'El Centro'
-                when branch_description = 'WARRANTY - APS' then 'Warranty American'
-                when branch_description = 'WARRANTY - FWP' then 'Warranty West Coast'
+                when branch_id = '000' then 'Corporate'
+                when branch_id = '010' then 'Tampa'
+                when branch_id = '020' then 'Spring Hill'
+                when branch_id = '030' then 'Port Charlotte'
+				when branch_id = '035' then 'Sarasota'
+                when branch_id = '040' then 'North Miami'
+                when branch_id = '050' then 'Naples'
+                when branch_id = '060' then 'West Palm Beach'
+                when branch_id = '070' then 'Melbourne'
+                when branch_id = '080' then 'Fulfillment'
+                when branch_id = '090' then 'Conroe'
+                when branch_id = '098' then 'Warranty West Coast'
+                when branch_id = '099' then 'Warranty American'
+                when branch_id = '100' then 'Katy'
+                when branch_id = '110' then 'Austin (FWP)'
+                when branch_id = '120' then 'Plano'
+                when branch_id = '130' then 'San Antonio (FWP)'
+                when branch_id = '140' then 'Fort Worth'
+                when branch_id = '200' then 'Meade'
+                when branch_id = '210' then 'La Costa'
+                when branch_id = '220' then 'Henderson'
+                when branch_id = '250' then 'St. George'
+                when branch_id = '301' then 'Anaheim'
+				when branch_id = '302' then 'Indio'
+				when branch_id = '303' then 'El Cajon'
+				when branch_id = '304' then 'Murrieta'
+				when branch_id = '305' then 'Livermore'
+				when branch_id = '306' then 'Ontario'
+				when branch_id = '307' then 'San Dimas'
+				when branch_id = '308' then 'Cathedral City'
+				when branch_id = '309' then 'San Fernando'
+				when branch_id = '310' then 'Visalia'
+				when branch_id = '311' then 'San Antonio (PEP)'
+				when branch_id = '312' then 'Vista'
+				when branch_id = '313' then 'Austin (PEP)'
+				when branch_id = '314' then 'Palm Springs'
+				when branch_id = '315' then 'Corona'
+				when branch_id = '316' then 'Bakersfield'
+				when branch_id = '317' then 'Houston'
+				when branch_id = '318' then 'Lake Forest'
+				when branch_id = '319' then 'Moorpark'
+				when branch_id = '320' then 'North Austin'
+				when branch_id = '321' then 'Duarte'
+				when branch_id = '322' then 'Yucaipa'
+				when branch_id = '323' then 'Riverside'
+				when branch_id = '324' then 'Long Beach'
+				when branch_id = '325' then 'Palm Desert'
+				when branch_id = '326' then 'Los Angeles'
+				when branch_id = '327' then 'Tempe'
+				when branch_id = '328' then 'Phoenix'
+				when branch_id = '329' then 'Santa Ana'
+				when branch_id = '330' then 'El Centro'
+				when branch_id = '331' then 'Rancho Cordova'
+				when branch_id = '332' then 'Chandler'
                     else branch_description end branch_description,
 			cast(order_date as timestamp) as order_date,
 			max(total_sales)-max(freight)-max(tax_amount) as total_sales,
@@ -92,6 +127,7 @@ begin
 			class_1id as channel,
 			'FWP' as company
 		from sales.fwp_invoice_data 
+		where customer_name <> 'POOL AND ELECTRICAL PRODUCTS'
 		group by order_no,
 			invoice_no,
 			invoice_date,
@@ -106,7 +142,7 @@ begin
     create table aquacentral.invoice_data_merged as 
     select *
 	from (
-		(select
+				(select distinct
 			null as order_no,
 			"INV_NUM" as invoice_no,
 			cast("INV_DATE" as timestamp) as invoice_date, 
@@ -149,37 +185,72 @@ begin
 			'PEP' as company
 		from sales.pep_invoice_data i
 		left join sales.pep_customer c
-			on i."CUST_NUM" = c."CUST_NUM")
+			on i."CUST_NUM" = c."CUST_NUM"
+		where i."CUST_NUM" <> '0FWPCORP'
+		)
 		
-		union 
-		(select 
+		union all
+		
+		(select distinct
 			order_no,
 			invoice_no,
 			cast(invoice_date as timestamp) as invoice_date,
             --rename the branches to proper case to prevent random aliases in tableau workbook
 			case 
-                when branch_description = 'APS - HENDERSON NV' then 'Henderson'
-                when branch_description = 'APS - LA COSTA NV' then 'La Costa'
-                when branch_description = 'APS - MEADE NV' then 'Meade'
-                when branch_description = 'APS - ST GEORGE UT' then 'St. George'
-                when branch_description = 'FWP - AUSTIN TX' then 'Austin (FWP)'
-                when branch_description = 'FWP - BONITA SPRINGS FL' then 'Naples'
-                when branch_description = 'FWP - CONROE TX' then 'Conroe'
-                when branch_description = 'FWP - FORT WORTH TX' then 'Fort Worth'
-                when branch_description = 'FWP - FULFILLMENT' then 'Fulfillment'
-                when branch_description = 'FWP - KATY TX' then 'Katy'
-                when branch_description = 'FWP - MELBOURNE FL' then 'Melbourne'
-                when branch_description = 'FWP - NORTH MIAMI FL' then 'North Miami'
-                when branch_description = 'FWP - PLANO TX' then 'Plano'
-                when branch_description = 'FWP - PORT CHARLOTTE FL' then 'Port Charlotte'
-                when branch_description = 'FWP - SAN ANTONIO TX' then 'San Antonio (FWP)'
-                when branch_description = 'FWP - SARASOTA FL' then 'Sarasota'
-                when branch_description = 'FWP - SPRINGHILL FL' then 'Spring Hill'
-                when branch_description = 'FWP - TAMPA  FL' then 'Tampa'
-                when branch_description = 'FWP - WEST PALM BEACH FL' then 'West Palm Beach'
-                when branch_description = 'PEP - EL CENTRO CA' then 'El Centro'
-                when branch_description = 'WARRANTY - APS' then 'Warranty American'
-                when branch_description = 'WARRANTY - FWP' then 'Warranty West Coast'
+                when branch_id = '000' then 'Corporate'
+                when branch_id = '010' then 'Tampa'
+                when branch_id = '020' then 'Spring Hill'
+                when branch_id = '030' then 'Port Charlotte'
+				when branch_id = '035' then 'Sarasota'
+                when branch_id = '040' then 'North Miami'
+                when branch_id = '050' then 'Naples'
+                when branch_id = '060' then 'West Palm Beach'
+                when branch_id = '070' then 'Melbourne'
+                when branch_id = '080' then 'Fulfillment'
+                when branch_id = '090' then 'Conroe'
+                when branch_id = '098' then 'Warranty West Coast'
+                when branch_id = '099' then 'Warranty American'
+                when branch_id = '100' then 'Katy'
+                when branch_id = '110' then 'Austin (FWP)'
+                when branch_id = '120' then 'Plano'
+                when branch_id = '130' then 'San Antonio (FWP)'
+                when branch_id = '140' then 'Fort Worth'
+                when branch_id = '200' then 'Meade'
+                when branch_id = '210' then 'La Costa'
+                when branch_id = '220' then 'Henderson'
+                when branch_id = '250' then 'St. George'
+                when branch_id = '301' then 'Anaheim'
+				when branch_id = '302' then 'Indio'
+				when branch_id = '303' then 'El Cajon'
+				when branch_id = '304' then 'Murrieta'
+				when branch_id = '305' then 'Livermore'
+				when branch_id = '306' then 'Ontario'
+				when branch_id = '307' then 'San Dimas'
+				when branch_id = '308' then 'Cathedral City'
+				when branch_id = '309' then 'San Fernando'
+				when branch_id = '310' then 'Visalia'
+				when branch_id = '311' then 'San Antonio (PEP)'
+				when branch_id = '312' then 'Vista'
+				when branch_id = '313' then 'Austin (PEP)'
+				when branch_id = '314' then 'Palm Springs'
+				when branch_id = '315' then 'Corona'
+				when branch_id = '316' then 'Bakersfield'
+				when branch_id = '317' then 'Houston'
+				when branch_id = '318' then 'Lake Forest'
+				when branch_id = '319' then 'Moorpark'
+				when branch_id = '320' then 'North Austin'
+				when branch_id = '321' then 'Duarte'
+				when branch_id = '322' then 'Yucaipa'
+				when branch_id = '323' then 'Riverside'
+				when branch_id = '324' then 'Long Beach'
+				when branch_id = '325' then 'Palm Desert'
+				when branch_id = '326' then 'Los Angeles'
+				when branch_id = '327' then 'Tempe'
+				when branch_id = '328' then 'Phoenix'
+				when branch_id = '329' then 'Santa Ana'
+				when branch_id = '330' then 'El Centro'
+				when branch_id = '331' then 'Rancho Cordova'
+				when branch_id = '332' then 'Chandler'
                     else branch_description end branch_description,
 			cast(order_date as timestamp) as order_date,
 			max(total_sales)-max(freight)-max(tax_amount) as total_sales,
@@ -187,6 +258,7 @@ begin
 			class_1id as channel,
 			'FWP' as company
 		from sales.fwp_invoice_data 
+		where customer_name <> 'POOL AND ELECTRICAL PRODUCTS'
 		group by order_no,
 			invoice_no,
 			invoice_date,
