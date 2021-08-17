@@ -127,7 +127,9 @@ begin
 			class_1id as channel,
 			'FWP' as company
 		from sales.fwp_invoice_data 
-		where customer_name <> 'POOL AND ELECTRICAL PRODUCTS'
+		where customer_name <> 'POOL AND ELECTRICAL PRODUCTS'  
+            --add these filters to match the GL per Katia Diaz/Reyes and Mike Peters
+            and (invoice_line_type = '0' and invoice_adjustment_type = 'I' and rebilled_flag = 'N')
 		group by order_no,
 			invoice_no,
 			invoice_date,
@@ -260,6 +262,8 @@ begin
 			'FWP' as company
 		from sales.fwp_invoice_data 
 		where customer_name <> 'POOL AND ELECTRICAL PRODUCTS'
+            --add these filters to match the GL per Katia Diaz/Reyes and Mike Peters
+            and (invoice_line_type = '0' and invoice_adjustment_type = 'I' and rebilled_flag = 'N')
 		group by order_no,
 			invoice_no,
 			invoice_date,
