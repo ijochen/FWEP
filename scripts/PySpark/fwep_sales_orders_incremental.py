@@ -30,13 +30,13 @@ logger.info("******** START READING PEP *************")
 # Invoice last 30 days
 pep_url = "jdbc:sqlserver://128.1.100.9:1433;databaseName=Prelude"
 pep_query = """(
-	select distinct --top(100)
+	select distinct 
 		'PEP' as COMPANY,
 		CT.CT_DESC CUST_TYPE,
 		OH.CUST_NUM, 
-		max(cu.CUST_DESC) CUST_DESC,
-		max(cu.CITY) CUST_CITY,
-		max(cu.STATE) CUST_STATE,
+		min(cu.TRUE_CUST_DESC) CUST_DESC,
+		min(cu.TRUE_CITY) CUST_CITY,
+		min(cu.TRUE_STATE) CUST_STATE,
 		OH.USER_ID,
 		U.USER_DESC USER_NAME,
 		OH.CUST_PO_NUM,
@@ -55,7 +55,7 @@ pep_query = """(
 		(INV_AMT - TOT_ORD_DOL) TAX,
 		OH.TOT_ORD_DOL,
 		OH.INV_AMT,
-		cast(OH.INV_DATE as date) INV_DATE, 
+		cast(OH.INV_DATE as datetime) INV_DATE, 
 		OH.INV_NUM,
 		min(substring(MISC_GL,14,17)) GL_ACCOUNT_NUM,
 		OL.WHSE_NUM,
@@ -130,21 +130,22 @@ pep_query = """(
 				else OH.SEL_WHSE end SEL_WHSE_NAME,
 		OH.SHIP_VIA_NUM,
 		S.SHIP_VIA_DESC,
-		cast(OH.ORD_DATE as date) ORD_DATE, 
-		cast(OL.PCK_DATE as date) PCK_DATE,
-		cast(OH.REQ_DATE as date) REQ_DATE
+		cast(OH.ORD_DATE as datetime) ORD_DATE, 
+		cast(OH.PCK_DATE as datetime) PCK_DATE,
+		cast(OH.REQ_DATE as datetime) REQ_DATE
 	from Prelude.dbo.ORDER_HISTORY_LINE_IJO_1 OL
 	left join Prelude.dbo.ORDER_HISTORY_NF_IJO OH on substring(OL.ID,1,11) = OH.ID
-	left join Prelude.dbo.CUSTOMER_IJO CU on OH.CUST_NUM = cu.CUST_NUM
-	left join Prelude.dbo.CUST_TYPE_1_NF CT on cu.TYPE = CT.CT_NUM 
 	left join Prelude.dbo.PRODUCT_IJO P on OL.PROD_NUM = p.PROD_NUM
 	left join Prelude.dbo.CATEGORY_IJO CA on p.PLINE_NUM = ca.PLINE_NUM
 	left join Prelude.dbo.USER_ID_NF U on OH.USER_ID = u.USER_NUM
 	left join Prelude.dbo.SHIP_VIA_NF_IJO S on oh.SHIP_VIA_NUM = s.SHIP_VIA_NUM
-	where OH.INV_DATE >= dateadd(day,-60,getdate()) and p.CO_NUM = '001' and ca.CO_NUM = '001' 
+	left join Prelude.dbo.PEP_CUSTOMER_CLEAN CU on OH.CUST_NUM = cu.CUST_NUM
+	left join Prelude.dbo.CUST_TYPE_1_NF CT on cu.TRUE_TYPE = CT.CT_NUM 
+	where OH.INV_DATE >= dateadd(day,-60,getdate()) and ol.CO_NUM = '001' and oh.ID like '001%' and p.CO_NUM = '001' and ca.CO_NUM = '001' and s.ID like '001%'
 	group by 
 		CT.CT_DESC,
 		OH.CUST_NUM,
+		--cu.CUST_DESC,
 		OH.USER_ID,
 		U.USER_DESC,
 		OH.SHIP_VIA_NUM,
@@ -174,7 +175,7 @@ pep_query = """(
 		OH.SHIP_VIA_NUM,
 		S.SHIP_VIA_DESC,
 		OH.ORD_DATE,
-		OL.PCK_DATE,
+		OH.PCK_DATE,
 		OH.REQ_DATE
 )"""
 
@@ -211,8 +212,8 @@ fwp_query = """(
 		oh.taker created_by,
 		u.name created_by_name,
 		ol.cust_po_no,
-		il.order_no, 
-		ol.line_no, 
+		ol.order_no, 
+		cast(ol.line_no as varchar) line_no, 
 		il.item_id prod_num, 
 		il.item_desc prod_desc, 
 		pg.product_group_desc prod_group,
@@ -226,7 +227,7 @@ fwp_query = """(
 		ih.tax_amount, 
 		ih.amount_paid paid_amount, 
 		ih.total_amount invoice_amount, 
-		cast(ih.invoice_date as date) invoice_date, 
+		cast(ih.invoice_date as datetime) invoice_date, 
 		ih.invoice_no, 
 		il.gl_revenue_account_no,
 		cast(ih.sales_location_id as varchar) sales_location_id,
@@ -236,12 +237,12 @@ fwp_query = """(
 		oh.front_counter trans_type,
 		case when oh.front_counter = 'Y' then 'FRONT COUNTER'
 			when oh.front_counter = 'N' then 'DELIVERY' end trans_desc,
-		cast(ih.order_date as date) order_date, 
-		cast(ih.ship_date as date) ship_date,
-		cast(ol.required_date as date) required_date
+		cast(ih.order_date as datetime) order_date, 
+		cast(ih.ship_date as datetime) ship_date,
+		cast(ol.required_date as datetime) required_date
 	from CommerceCenter.dbo.invoice_line il
 	left join CommerceCenter.dbo.invoice_hdr ih on il.invoice_no = ih.invoice_no
-	join CommerceCenter.dbo.oe_line ol on il.order_no = ol.order_no and il.customer_part_number = ol.customer_part_number
+	join CommerceCenter.dbo.oe_line ol on il.order_no = ol.order_no and il.oe_line_number = ol.line_no-- and il.customer_part_number = ol.customer_part_number
 	left join CommerceCenter.dbo.oe_hdr oh on ol.order_no = oh.order_no
 	left join CommerceCenter.dbo.branch b1 on ih.sales_location_id = b1.branch_id
 	left join CommerceCenter.dbo.branch b2 on ih.branch_id = b2.branch_id
@@ -258,7 +259,7 @@ fwp_query = """(
 		oh.taker,
 		u.name,
 		ol.cust_po_no,
-		il.order_no, 
+		ol.order_no, 
 		ol.line_no, 
 		item_id, 
 		item_desc, 
