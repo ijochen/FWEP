@@ -131,6 +131,7 @@ begin
 		group by order_no,
 			invoice_no,
 			invoice_date,
+            branch_id,
 			branch_description,
 			order_date,
 			class_1id
@@ -262,6 +263,7 @@ begin
 		group by order_no,
 			invoice_no,
 			invoice_date,
+            branch_id,
 			branch_description,
 			order_date,
 			class_1id
