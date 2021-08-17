@@ -49,7 +49,9 @@ erp_query = """(
         b.branch_description, 
         im.default_sales_discount_group, 
         im.item_id, 
-        im.item_desc
+        im.item_desc, 
+		qty_on_hand,
+		qty_allocated
 )"""
 
 ss_df = spark.read.format("jdbc") \
