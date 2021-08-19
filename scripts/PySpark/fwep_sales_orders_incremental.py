@@ -30,13 +30,13 @@ logger.info("******** START READING PEP *************")
 # Invoice last 30 days
 pep_url = "jdbc:sqlserver://128.1.100.9:1433;databaseName=Prelude"
 pep_query = """(
-	select distinct 
+	select distinct --top(100)
 		'PEP' as COMPANY,
 		CT.CT_DESC CUST_TYPE,
 		OH.CUST_NUM, 
-		min(cu.TRUE_CUST_DESC) CUST_DESC,
-		min(cu.TRUE_CITY) CUST_CITY,
-		min(cu.TRUE_STATE) CUST_STATE,
+		CU.CUST_DESC,
+		CU.CITY CUST_CITY,
+		CU.STATE CUST_STATE,
 		OH.USER_ID,
 		U.USER_DESC USER_NAME,
 		OH.CUST_PO_NUM,
@@ -55,7 +55,7 @@ pep_query = """(
 		(INV_AMT - TOT_ORD_DOL) TAX,
 		OH.TOT_ORD_DOL,
 		OH.INV_AMT,
-		cast(OH.INV_DATE as datetime) INV_DATE, 
+		cast(OH.INV_DATE as date) INV_DATE, 
 		OH.INV_NUM,
 		min(substring(MISC_GL,14,17)) GL_ACCOUNT_NUM,
 		OL.WHSE_NUM,
@@ -139,13 +139,16 @@ pep_query = """(
 	left join Prelude.dbo.CATEGORY_IJO CA on p.PLINE_NUM = ca.PLINE_NUM
 	left join Prelude.dbo.USER_ID_NF U on OH.USER_ID = u.USER_NUM
 	left join Prelude.dbo.SHIP_VIA_NF_IJO S on oh.SHIP_VIA_NUM = s.SHIP_VIA_NUM
-	left join Prelude.dbo.PEP_CUSTOMER_CLEAN CU on OH.CUST_NUM = cu.CUST_NUM
-	left join Prelude.dbo.CUST_TYPE_1_NF CT on cu.TRUE_TYPE = CT.CT_NUM 
-	where OH.INV_DATE >= dateadd(day,-60,getdate()) and ol.CO_NUM = '001' and oh.ID like '001%' and p.CO_NUM = '001' and ca.CO_NUM = '001' and s.ID like '001%'
+	left join Prelude.dbo.CUSTOMER_IJO CU on OH.CUST_NUM = cu.CUST_NUM
+	left join Prelude.dbo.CUST_TYPE_1_NF CT on cu.TYPE = CT.CT_NUM 
+	where OH.INV_DATE >= dateadd(day,-60,getdate()) and ol.CO_NUM = '001' and oh.ID like '001%' and p.CO_NUM = '001' and ca.CO_NUM = '001' and s.ID like '001%' and cu.ID like '001%'
+	--where OH.INV_DATE >= dateadd(day,-60,getdate()) and p.CO_NUM = '001' and ca.CO_NUM = '001' 
 	group by 
 		CT.CT_DESC,
 		OH.CUST_NUM,
-		--cu.CUST_DESC,
+		CU.CUST_DESC,
+		CU.CITY,
+		CU.STATE,
 		OH.USER_ID,
 		U.USER_DESC,
 		OH.SHIP_VIA_NUM,
