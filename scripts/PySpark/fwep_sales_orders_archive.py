@@ -38,6 +38,10 @@ pep_query = """(
 --pep 2020 sales 2,514,532 rows 8/19/21
 --pep 2021 sales 1,773,246 rows 8/19/21
 
+--pep 2019 sales 2,187,145 rows 9/8/21
+--pep 2020 sales 2,516,760 rows 9/8/21
+--pep 2021 sales 1,931,399 rows 9/8/21
+
 	select distinct --top(100)
 		'PEP' as COMPANY,
 		CT.CT_DESC CUST_TYPE,

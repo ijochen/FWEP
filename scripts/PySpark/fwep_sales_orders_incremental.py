@@ -134,7 +134,7 @@ pep_query = """(
 		cast(OH.PCK_DATE as datetime) PCK_DATE,
 		cast(OH.REQ_DATE as datetime) REQ_DATE
 	from Prelude.dbo.ORDER_HISTORY_LINE_IJO_1 OL
-	left join Prelude.dbo.ORDER_HISTORY_NF_IJO OH on substring(OL.ID,1,11) = OH.ID
+	left join Prelude.dbo.ORDER_HISTORY_NF_IJO OH on left(OL.ID, charindex('!',OL.ID)-1) = OH.ID 
 	left join Prelude.dbo.PRODUCT_IJO P on OL.PROD_NUM = p.PROD_NUM
 	left join Prelude.dbo.CATEGORY_IJO CA on p.PLINE_NUM = ca.PLINE_NUM
 	left join Prelude.dbo.USER_ID_NF U on OH.USER_ID = u.USER_NUM
