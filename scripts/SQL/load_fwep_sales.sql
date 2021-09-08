@@ -6,7 +6,7 @@ BEGIN
     SELECT DISTINCT * 
     FROM (
         (SELECT DISTINCT * FROM sales.fwp_sales)
-        UNION
+        UNION ALL
         (SELECT DISTINCT * FROM sales.pep_sales)
     ) a;
 
@@ -16,7 +16,7 @@ BEGIN
     SELECT DISTINCT * 
     FROM (
         (SELECT DISTINCT * FROM sales.fwp_sales)
-        UNION
+        UNION ALL
         (SELECT DISTINCT * FROM sales.pep_sales)
     ) b;
 
