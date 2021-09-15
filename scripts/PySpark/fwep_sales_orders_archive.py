@@ -42,7 +42,7 @@ pep_query = """(
 --pep 2020 sales 2,516,760 rows 9/8/21
 --pep 2021 sales 1,931,399 rows 9/8/21
 
-	select distinct --top(100)
+	select --distinct --top(100)
 		'PEP' as COMPANY,
 		CT.CT_DESC CUST_TYPE,
 		OH.CUST_NUM, 
@@ -151,7 +151,6 @@ pep_query = """(
 	left join Prelude.dbo.CATEGORY_IJO CA on p.PLINE_NUM = ca.PLINE_NUM
 	left join Prelude.dbo.USER_ID_NF U on OH.USER_ID = u.USER_NUM
 	left join Prelude.dbo.SHIP_VIA_NF_IJO S on oh.SHIP_VIA_NUM = s.SHIP_VIA_NUM
-	--left join Prelude.dbo.PEP_CUSTOMER_CLEAN CU on OH.CUST_NUM = cu.CUST_NUM
 	left join Prelude.dbo.CUSTOMER_IJO CU on OH.CUST_NUM = cu.CUST_NUM
 	left join Prelude.dbo.CUST_TYPE_1_NF CT on cu.TYPE = CT.CT_NUM 
 	where year(OH.INV_DATE) = 2019 and ol.CO_NUM = '001' and oh.ID like '001%' and p.CO_NUM = '001' and ca.CO_NUM = '001' and s.ID like '001%' and cu.ID like '001%'
@@ -219,8 +218,8 @@ logger.info("******** END READING PEP *************")
 # fwp_query = """(
 # --fwp 2019 sales 956,751 rows
 # --fwp 2020 sales 1,077,202 rows
-# --fwp 2021 sales 732,674 rows
-# 	select distinct --top(100)
+# --fwp 2021 sales 822,194 rows
+# 	select --distinct --top(100)
 # 		'FWP' as company,
 # 		c.class_1id customer_type,
 # 		ih.customer_id, 
@@ -267,7 +266,7 @@ logger.info("******** END READING PEP *************")
 # 	left join CommerceCenter.dbo.product_group pg on il.product_group_id = pg.product_group_id
 # 	left join CommerceCenter.dbo.customer c on ih.customer_id = c.customer_id
 # 	left join CommerceCenter.dbo.users u on oh.taker = u.id
-# 	where year(invoice_date) >= 2019 and gl_revenue_account_no like '4000%' and il.invoice_line_type = '0' and ih.invoice_adjustment_type = 'I'
+# 	where year(invoice_date) = 2019 and gl_revenue_account_no like '4000%' and il.invoice_line_type = '0' and ih.invoice_adjustment_type = 'I' and c.customer_name not like 'POOL AND ELECTRICAL PRODUCTS' 
 # 	group by 
 # 		c.class_1id,
 # 		ih.customer_id, 
@@ -314,7 +313,7 @@ logger.info("******** END READING PEP *************")
 # mode = "overwrite"
 # url = "jdbc:postgresql://db-cluster.cluster-ce0xsttrdwys.us-east-2.rds.amazonaws.com:5432/analytics"
 # properties = {"user": "postgres","password": "kHSmwnXWrG^L3N$V2PXPpY22*47","driver": "org.postgresql.Driver"}
-# fwp_df.write.jdbc(url=url, table="sales.fwp_sales", mode=mode, properties=properties)
+# fwp_df.write.jdbc(url=url, table="sales.fwp_sales_2019", mode=mode, properties=properties)
 
 
 # logger.info("******** END READING FWP *************")
