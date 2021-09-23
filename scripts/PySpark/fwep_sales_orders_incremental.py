@@ -30,7 +30,7 @@ logger.info("******** START READING PEP *************")
 # Invoice last 30 days
 pep_url = "jdbc:sqlserver://128.1.100.9:1433;databaseName=Prelude"
 pep_query = """(
-	select distinct --top(100)
+	select --distinct --top(100)
 		'PEP' as COMPANY,
 		CT.CT_DESC CUST_TYPE,
 		OH.CUST_NUM, 
@@ -205,7 +205,7 @@ logger.info("******** START READING FWP *************")
 
 fwp_url = "jdbc:sqlserver://128.1.100.9:1433;databaseName=CommerceCenter"
 fwp_query = """(
-	select distinct --top(100)
+	select --distinct --top(100)
 		'FWP' as company,
 		c.class_1id customer_type,
 		ih.customer_id, 
