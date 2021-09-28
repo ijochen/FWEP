@@ -122,7 +122,7 @@ pep_query = """(
         cast(ph.REC_DATE as date) REC_DATE,
         cast(pl.DEL_DATE as date) DEL_DATE
     from Prelude.dbo.PO_HISTORY_LINE_IJO pl
-    left join Prelude.dbo.PO_HISTORY_IJO ph on substring(pl.ID,1,13) = ph.ID
+    left join Prelude.dbo.PO_HISTORY_IJO ph on left(PL.ID, charindex('!',PL.ID)-1) = ph.ID
     left join Prelude.dbo.PRODUCT_IJO p on pl.PROD_NUM = p.PROD_NUM
     left join Prelude.dbo.CATEGORY_IJO ca on p.PLINE_NUM = ca.PLINE_NUM
     left join Prelude.dbo.VEND_IJO v on ph.VEND_NUM = v.VEND_NUM and ph.CO_NUM = v.CO_NUM
