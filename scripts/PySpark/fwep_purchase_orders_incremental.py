@@ -28,7 +28,7 @@ job.init(args['JOB_NAME'], args)
 logger.info("******** START READING PEP *************")
 
 # PEP POs Last 60 Days
-pep_url = "jdbc:sqlserver://128.1.100.9:1433;databaseName=Prelude"
+pep_url = "jdbc:sqlserver://10.0.10.18:1433;databaseName=Prelude"
 pep_query = """(
     select distinct --top(100)
         'PEP' as COMPANY,
