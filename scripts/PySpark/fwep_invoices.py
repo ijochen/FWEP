@@ -67,12 +67,12 @@ pep_query = """(
     			when OH.SEL_WHSE = '30' then '30-El Centro'
     				else OH.SEL_WHSE end Branch,
         OH.ORD_DATE, OH.INV_AMT, OH.MERCH_AMT, OH.TOT_COST, OH.CUST_NUM, min(CU.CUST_DESC) CUST_DESC, CT.CT_DESC
-    from Prelude.dbo.ORDER_HISTORY_NF_IJO_2108 OH
+    from Prelude.dbo.ORDER_HISTORY_IJO_2109 OH
     left join Prelude.dbo.CUSTOMER_IJO CU on OH.CUST_NUM = cu.CUST_NUM
     left join Prelude.dbo.CUST_TYPE_1_NF CT on cu.TYPE = CT.CT_NUM 
     --pull from FWP_SQL when need to re-ETL the historical data
     --where year(OH.INV_DATE) = 2021 AND OH.SEL_WHSE NOT IN ('98','99') and OH.CUST_NUM != '0FWPCORP' AND OH.ID LIKE '001%' AND CU.ID LIKE '001%' AND CT.ID LIKE '001%'
-    where OH.INV_DATE between dateadd(dd,-30,getdate()) and getdate() and OH.SEL_WHSE not in ('98','99') and OH.CUST_NUM != '0FWPCORP' AND OH.ID LIKE '001%' AND CU.ID LIKE '001%' AND CT.ID LIKE '001%'
+    where OH.INV_DATE between dateadd(dd,-30,getdate()) and getdate() and OH.SEL_WHSE not in ('98','99') and OH.CUST_NUM != '0FWPCORP' --AND OH.ID LIKE '001%' AND CU.ID LIKE '001%' AND CT.ID LIKE '001%'
     group by OH.ORD_NUM, OH.INV_NUM, OH.INV_DATE, OH.SEL_WHSE, OH.ORD_DATE, OH.INV_AMT, OH.MERCH_AMT, OH.TOT_COST, OH.CUST_NUM, CT.CT_DESC--, CU.CUST_DESC
 )"""
 
