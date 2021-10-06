@@ -35,7 +35,7 @@ BEGIN
 
     --reinsert distinct records
     INSERT INTO warehouse.inventory_position
-    SELECT location_id, branch_description, item_group, item_id, item_desc, avg_fifo_cost, qty_on_hand, qty_allocated, qty_available, trans_date
+    SELECT location_id, branch_description, item_group, item_id, item_desc, supplier_part_no, unit_of_measure, avg_fifo_cost, qty_on_hand, qty_allocated, qty_available, trans_date
     FROM warehouse.inventory_position_rank;
 
     --drop these tables to save on cost/space
