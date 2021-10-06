@@ -21,7 +21,7 @@ BEGIN
     DROP TABLE IF EXISTS warehouse.inventory_position_rank;
 
     CREATE TABLE warehouse.inventory_position_rank as 
-    SELECT *, dense_rank OVER( PARTITION BY location_id, item_id, count order by count, trans_date asc) rank
+    SELECT *, dense_rank() OVER( PARTITION BY location_id, item_id, count order by count, trans_date asc) rank
     FROM (
         SELECT * FROM warehouse.inventory_position_count
     ) t2;
