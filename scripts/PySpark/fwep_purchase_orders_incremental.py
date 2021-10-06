@@ -28,7 +28,7 @@ job.init(args['JOB_NAME'], args)
 logger.info("******** START READING PEP *************")
 
 # PEP POs Last 60 Days
-pep_url = "jdbc:sqlserver://10.0.10.18:1433;databaseName=Prelude"
+pep_url = "jdbc:sqlserver://128.1.100.9:1433;databaseName=Prelude"
 pep_query = """(
     select distinct --top(100)
         'PEP' as COMPANY,
@@ -186,7 +186,7 @@ fwp_query = """(
         ph.branch_id,
         b2.branch_description branch_name,
         cast(ph.order_date as date) order_date,
-        cast(ph.receipt_date as date) receipt_date,
+        cast(pl.received_date as date) received_date,
         cast(pl.date_due as date) promised_del_date
     from CommerceCenter.dbo.po_line pl
     left join CommerceCenter.dbo.po_hdr ph on pl.po_no = ph.po_no
@@ -196,13 +196,13 @@ fwp_query = """(
     left join CommerceCenter.dbo.branch b1 on ph.location_id = b1.branch_id
     left join CommerceCenter.dbo.branch b2 on ph.branch_id = b2.branch_id
     left join CommerceCenter.dbo.users u on replace(pl.created_by,'FWPNET\\','') = u.id or replace(pl.created_by,'poolelectrical\\','') = u.id
-    where ph.order_date >= dateadd(day,-60,getdate())
+    where year(ph.order_date) >= 2019 and ins.supplier_part_no is not null
     group by ph.po_type, ph.po_no, pl.line_no, 
         ph.vendor_id, v.vendor_name, pl.created_by, u.name,
         i.item_id, pl.item_description, i.default_sales_discount_group, ins.supplier_part_no, 
         pl.unit_of_measure,	pl.qty_ordered, pl.qty_received, pl.unit_price, 
         ph.location_id, ph.branch_id, b1.branch_description, b2.branch_description,
-        ph.order_date, ph.receipt_date, pl.date_due
+        ph.order_date, pl.received_date, pl.date_due
 )"""
 
 fwp_df = spark.read.format("jdbc") \
