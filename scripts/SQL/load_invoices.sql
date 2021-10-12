@@ -15,6 +15,7 @@ begin
 			"ORD_NUM" as order_no,
 			"INV_NUM" as invoice_no,
 			cast("INV_DATE" as timestamp) as invoice_date, 
+			"SEL_WHSE" as branch_id,
 			case 
                 when "Branch" = '01-Anaheim' then 'Anaheim'
                 when "Branch" = '02-Indio' then 'Indio'
@@ -61,6 +62,7 @@ begin
 			order_no,
 			invoice_no,
 			cast(invoice_date as timestamp) as invoice_date,
+			branch_id,
             --rename the branches to proper case to prevent random aliases in tableau workbook
 			case 
                 when branch_id = '000' then 'Corporate'
@@ -146,6 +148,7 @@ begin
 			"ORD_NUM" as order_no,
 			"INV_NUM" as invoice_no,
 			cast("INV_DATE" as timestamp) as invoice_date, 
+			"SEL_WHSE" as branch_id,
 			case 
                 when "Branch" = '01-Anaheim' then 'Anaheim'
                 when "Branch" = '02-Indio' then 'Indio'
@@ -192,6 +195,7 @@ begin
 			order_no,
 			invoice_no,
 			cast(invoice_date as timestamp) as invoice_date,
+			branch_id,
             --rename the branches to proper case to prevent random aliases in tableau workbook
 			case 
                 when branch_id = '000' then 'Corporate'

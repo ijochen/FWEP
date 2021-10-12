@@ -26,7 +26,7 @@ BEGIN
         "Manager" manager,
         "Time Zone" time_zone       
         from sales.invoice_data_merged sidm
-        left join warehouse.regional_mgmt_mapping_data rmmd on sidm.branch = rmmd."City"
+        left join warehouse.regional_mgmt_mapping_data rmmd on sidm.branch = rmmd."City" and sidm.branch_id = rmmd."Location ID"
     ) a;
 
 END;
