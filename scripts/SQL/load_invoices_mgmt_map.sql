@@ -21,7 +21,7 @@ BEGIN
         "Region Detail" region_detail,
         "Regional Leader" regional_leader,
         "City" city,
-        "Location ID" location_id, 
+        trim(leading '0' from "Location ID") location_id, 
         "Region" region,
         "Manager" manager,
         "Time Zone" time_zone       
