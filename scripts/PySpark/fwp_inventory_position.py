@@ -33,25 +33,28 @@ erp_query = """(
         im.default_sales_discount_group item_group, 
         im.item_id, 
         im.item_desc, 
-        avg(fi.cost) avg_fifo_cost,
-        /*sum(qty_on_hand)*/ qty_on_hand, 
-        /*sum(qty_allocated)*/ qty_allocated, 
-        --(sum(qty_on_hand) - sum(qty_allocated)) qty_available,
-        (qty_on_hand - qty_allocated) qty_available
-        --cast(getdate() as date) trans_date
+        ins.supplier_part_no,
+        im.purchase_pricing_unit unit_of_measure, 
+        round(avg(fi.cost),2) avg_fifo_cost,
+        qty_on_hand, 
+        qty_allocated, 
+        (qty_on_hand - qty_allocated) qty_available											
     from CommerceCenter.dbo.inv_loc il
     left join CommerceCenter.dbo.branch b on il.location_id = b.branch_id
     left join CommerceCenter.dbo.inv_mast im on il.inv_mast_uid = im.inv_mast_uid
-    left join CommerceCenter.dbo.fifo_layers fi on im.inv_mast_uid = fi.inv_mast_uid
-    where qty_on_hand > 0 or qty_allocated > 0 
+    left join CommerceCenter.dbo.inventory_supplier ins on il.inv_mast_uid = ins.inv_mast_uid
+    left join CommerceCenter.dbo.fifo_layers fi on il.inv_mast_uid = fi.inv_mast_uid
+    where qty_on_hand > 0 or qty_allocated > 0  and ins.supplier_part_no is not null
     group by 
         il.location_id, 
         b.branch_description, 
         im.default_sales_discount_group, 
         im.item_id, 
         im.item_desc, 
-		qty_on_hand,
-		qty_allocated
+        ins.supplier_part_no,
+        im.purchase_pricing_unit,
+        qty_on_hand,
+        qty_allocated
 )"""
 
 ss_df = spark.read.format("jdbc") \
