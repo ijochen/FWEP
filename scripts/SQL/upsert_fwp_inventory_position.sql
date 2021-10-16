@@ -3,12 +3,15 @@
 CREATE FUNCTION warehouse.upsert_fwp_inventory_position() RETURNS void AS $$
 BEGIN
 	
-    --Create table that counts the duplicates
+    --Create table that counts the duplicates in all the tables
     DROP TABLE IF EXISTS warehouse.inventory_position_count;
 
     CREATE TABLE warehouse.inventory_position_count as 
     SELECT *, COUNT(item_id) OVER( PARTITION BY location_id, item_id, qty_on_hand, qty_allocated, qty_available) COUNT
     FROM (
+        --main table for Tableau Dash
+        select * from warehouse.inventory_position
+        union
         --original table from first ETL
         SELECT * FROM warehouse.inventory_position_interim
         UNION
