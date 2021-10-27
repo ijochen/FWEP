@@ -27,6 +27,7 @@ job.init(args['JOB_NAME'], args)
 
 erp_url = "jdbc:sqlserver://10.0.10.18:1433;databaseName=P21Test"
 erp_query = """(
+--Aug2020
     select 
         faoip.location_id, 
         b.branch_description, 
@@ -40,7 +41,7 @@ erp_query = """(
         '5' qty_allocated, 
         faoip.qty_available, 
         '2021-09-01' trans_date
-    from Prelude.dbo.FWP_APS_Sep2020_Inv_Pos faoip
+    from Prelude.dbo.FWP_APS_Aug2020_Inv_Pos faoip
     left join P21Test.dbo.inv_mast im on faoip.item_id = im.item_id
     left join P21Test.dbo.branch b on faoip.location_id = b.branch_id
     left join P21Test.dbo.inv_loc il on faoip.location_id = il.location_id and im.inv_mast_uid = il.inv_mast_uid
@@ -66,7 +67,7 @@ ss_df = spark.read.format("jdbc") \
 mode = "overwrite"
 url = "jdbc:postgresql://db-cluster.cluster-ce0xsttrdwys.us-east-2.rds.amazonaws.com:5432/analytics"
 properties = {"user": "postgres","password": "kHSmwnXWrG^L3N$V2PXPpY22*47","driver": "org.postgresql.Driver"}
-ss_df.write.jdbc(url=url, table="warehouse.inventory_position_oct2020", mode=mode, properties=properties)
+ss_df.write.jdbc(url=url, table="warehouse.inventory_position_aug2020", mode=mode, properties=properties)
 
 
 
