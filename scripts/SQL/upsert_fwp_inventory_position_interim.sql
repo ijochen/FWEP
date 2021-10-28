@@ -1,3 +1,5 @@
+-- drop function warehouse.inventory_position_incremental;
+
 CREATE FUNCTION warehouse.upsert_fwp_inventory_position_interim()  RETURNS void AS $$
 BEGIN
 	
@@ -16,3 +18,5 @@ BEGIN
 END ;
 $$
 LANGUAGE plpgsql ;
+
+-- select * from warehouse.inventory_position_incremental;
