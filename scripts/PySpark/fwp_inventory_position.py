@@ -82,7 +82,7 @@ conn = pg8000.connect(
     port=5432
 )
 
-query = "warehouse.upsert_fwp_inventory_position_interim()"
+query = "select warehouse.upsert_fwp_inventory_position_interim()"
 cur = conn.cursor()
 cur.execute(query)
 conn.commit()
