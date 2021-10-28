@@ -88,6 +88,12 @@ cur.execute(query)
 conn.commit()
 cur.close()
 
+queryTwo = "select warehouse.load_fwp_inventory_position()"
+cur = conn.cursor()
+cur.execute(queryTwo)
+conn.commit()
+cur.close()
+
 conn.close()
 
 
