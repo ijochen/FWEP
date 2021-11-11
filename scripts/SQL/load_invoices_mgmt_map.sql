@@ -27,7 +27,8 @@ BEGIN
             "Region" region,
             "Manager" manager,
             "Time Zone" time_zone,
-            "Buyer" buyer       
+            "Buyer" buyer,
+            "Former Entity" former_entity       
         from sales.invoice_data_merged sidm
         left join warehouse.regional_mgmt_mapping_data rmmd on sidm.branch = rmmd."City" and trim(leading '0' from branch_id) = rmmd."Location ID"
         -- and sidm.branch_id = lpad(rmmd."Location ID"::text,3,'0')
