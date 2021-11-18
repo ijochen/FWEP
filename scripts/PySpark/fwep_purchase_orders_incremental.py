@@ -28,7 +28,7 @@ job.init(args['JOB_NAME'], args)
 logger.info("******** START READING PEP *************")
 
 # PEP POs Last 60 Days
-pep_url = "jdbc:sqlserver://128.1.100.9:1433;databaseName=Prelude"
+pep_url = "jdbc:sqlserver://10.0.10.18:1433;databaseName=Prelude"
 pep_query = """(
     select distinct --top(100)
         'PEP' as COMPANY,
@@ -117,10 +117,10 @@ pep_query = """(
             when pl.WHSE_NUM = '30' then 'PEP - EL CENTRO CA'
             when pl.WHSE_NUM = '98' then 'PEP - CORPORATE WAREHOUSE'
             when pl.WHSE_NUM = '99' then 'PEP - CENTRAL SHIPPING WAREHOUSE'
-                else pl.WHSE_NUM end WHSE_NAME,
+                else pl.WHSE_NUM end WHSE_NAME,		
         cast(ph.PO_DATE as date) PO_DATE,
         cast(ph.REC_DATE as date) REC_DATE,
-        cast(pl.DEL_DATE as date) DEL_DATE
+        case when pl.DEL_DATE = '0000-00-00' then '' else cast(pl.DEL_DATE as date) end DEL_DATE
     from Prelude.dbo.PO_HISTORY_LINE_IJO pl
     left join Prelude.dbo.PO_HISTORY_IJO ph on left(PL.ID, charindex('!',PL.ID)-1) = ph.ID
     left join Prelude.dbo.PRODUCT_IJO p on pl.PROD_NUM = p.PROD_NUM
@@ -128,7 +128,9 @@ pep_query = """(
     left join Prelude.dbo.VEND_IJO v on ph.VEND_NUM = v.VEND_NUM and ph.CO_NUM = v.CO_NUM
     left join Prelude.dbo.BUYER_NF b on ph.BUYER_NUM = b.BUYER_NUM
     left join Prelude.dbo.USER_ID_NF U on ph.BUYER_NUM = u.USER_NUM
-    where /*pl.PROD_NUM not in ('C','CSB','CS','CI','CN','CP','MN')  and */p.CO_NUM = '001' and ca.CO_NUM = '001' and ph.PO_DATE >= dateadd(day,-60,getdate())
+    where p.CO_NUM = '001' and ca.CO_NUM = '001'
+		/*and pl.PROD_NUM not in ('C','CSB','CS','CI','CN','CP','MN')  and */
+		and ph.PO_DATE >= dateadd(day,-60,getdate())
     group by ph.PO_TYPE, ph.PO_NUM, pl.SEQ_NUM,
         ph.VEND_NUM, v.VEND_DESC, ph.BUYER_NUM, b.BUYER_DESC, u.USER_DESC,
         pl.PROD_NUM, p.PROD_DESC1, p.PROD_DESC2, ca.PLINE_DESC, pl.VPROD_NUM,
