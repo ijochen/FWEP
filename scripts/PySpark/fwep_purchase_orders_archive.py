@@ -120,7 +120,7 @@ job.init(args['JOB_NAME'], args)
 #                 else pl.WHSE_NUM end WHSE_NAME,
 #         cast(ph.PO_DATE as date) PO_DATE,
 #         cast(ph.REC_DATE as date) REC_DATE,
-#         cast(pl.DEL_DATE as date) DEL_DATE
+#         case when pl.DEL_DATE = '0000-00-00' then '' else cast(pl.DEL_DATE as date) end DEL_DATE
 #     from Prelude.dbo.PO_HISTORY_LINE_IJO pl
 #     left join Prelude.dbo.PO_HISTORY_IJO ph on left(PL.ID, charindex('!',PL.ID)-1) = ph.ID
 #     left join Prelude.dbo.PRODUCT_IJO p on pl.PROD_NUM = p.PROD_NUM
