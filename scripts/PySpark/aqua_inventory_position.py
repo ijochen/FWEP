@@ -27,8 +27,8 @@ job.init(args['JOB_NAME'], args)
 
 erp_url = "jdbc:sqlserver://128.1.100.9:1433;databaseName=CommerceCenter"
 erp_query = """(
-   select distinct 
-        "P21" ERP,
+  select distinct 
+        'P21' ERP,
         il.location_id, 
         b.branch_description, 
         im.default_sales_discount_group item_group, 

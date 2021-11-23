@@ -1,3 +1,6 @@
+-- DROP FUNCTION warehouse.load_fweps_inventory_position()
+
+
 CREATE FUNCTION warehouse.load_fweps_inventory_position() RETURNS void AS $$
 BEGIN
 
@@ -55,3 +58,5 @@ BEGIN
 END ;
 $$
 LANGUAGE plpgsql ;
+
+-- select warehouse.load_fweps_inventory_position()
