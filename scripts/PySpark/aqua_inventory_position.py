@@ -77,8 +77,8 @@ ss_df.write.jdbc(url=url, table="warehouse.fweps_inventory_position_incremental"
 erp_url = "jdbc:sqlserver://10.0.10.18:1433;databaseName=Prelude"
 erp_query = """(
     SELECT DISTINCT
-        'PRELUDE' ERP,
-        WS.WHSE_NUM
+        'PRELUDE' ERP
+        , WS.WHSE_NUM
         , WA.WHSE_DESC
         , CA.PLINE_DESC PROD_CATEGORY
         , WS.PROD_NUM
