@@ -1,15 +1,15 @@
-CREATE FUNCTION warehouse.load_fwp_inventory_position() RETURNS void AS $$
+CREATE FUNCTION warehouse.load_fweps_inventory_position() RETURNS void AS $$
 BEGIN
 
-    DROP TABLE IF EXISTS warehouse.inventory_position;
+    DROP TABLE IF EXISTS warehouse.fweps_inventory_position;
 
-    CREATE TABLE warehouse.inventory_position AS
+    CREATE TABLE warehouse.fweps_inventory_position AS
     SELECT * FROM (
         select 
             ipi.*, 
             coalesce(fsdm.qty_sold,0) qty_sold, 
             coalesce(fpdm.qty_received,0) qty_received
-        from warehouse.inventory_position_interim ipi 
+        from warehouse.fweps_inventory_position_interim ipi 
         -- Demand: What did we sell to Customers?
         left join (
                     select 

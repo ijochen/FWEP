@@ -1,6 +1,6 @@
--- drop function warehouse.inventory_position_incremental;
+-- drop function warehouse.fweps_inventory_position_incremental;
 
-CREATE FUNCTION warehouse.upsert_fwp_inventory_position_interim()  RETURNS void AS $$
+CREATE FUNCTION warehouse.upsert_fweps_inventory_position_interim()  RETURNS void AS $$
 BEGIN
 	
 	-- Delete
@@ -19,4 +19,4 @@ END ;
 $$
 LANGUAGE plpgsql ;
 
--- select * from warehouse.inventory_position_incremental;
+-- select * from warehouse.fweps_inventory_position_incremental;
