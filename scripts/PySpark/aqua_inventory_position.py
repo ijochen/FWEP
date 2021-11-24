@@ -78,20 +78,22 @@ erp_url = "jdbc:sqlserver://10.0.10.18:1433;databaseName=Prelude"
 erp_query = """(
     SELECT DISTINCT
         'PRELUDE' ERP
+        --, CAST(WS.WHSE_NUM AS FLOAT) WHSE_NUM
         , WS.WHSE_NUM
         , WA.WHSE_DESC
         , CA.PLINE_DESC PROD_CATEGORY
         , WS.PROD_NUM
         , CONCAT(P.PROD_DESC1,' ',P.PROD_DESC2) PROD_DESC
-        , V.VEND_NUM
+        --, V.VEND_NUM
         , ISNULL(PV.VPROD_NUM,'') VEND_PROD_NUM
         , WS.PHY_UOM_CNT
         , WS.AVG_COST
-        , WS.ONHAND QTY_ONHAND
+        , CAST(WS.ONHAND AS FLOAT) QTY_ONHAND
         --, PP.QPSO_TOT COMMIT_SO_PICK
         --, PP.QPST_TOT COMMIT_TRANS_PICK
         , ISNULL((CAST(PP.QPSO_TOT AS FLOAT) + CAST(PP.QPST_TOT AS FLOAT)),0) QTY_ALLOCATED
         , CAST(WS.ONHAND AS FLOAT) - ISNULL((CAST(PP.QPSO_TOT AS FLOAT) + CAST(PP.QPST_TOT AS FLOAT)),0) QTY_AVAILABLE
+        , DATEADD(DD, 1, EOMONTH(GETDATE(), -1)) TRANS_DATE
     FROM PRELUDE.DBO.WHSE_STAT_IJO WS
     LEFT JOIN PRELUDE.DBO.PRODUCT_IJO P ON WS.CO_NUM = P.CO_NUM AND WS.PROD_NUM = P.PROD_NUM
     LEFT JOIN PRELUDE.DBO.CATEGORY_IJO CA ON WS.CO_NUM = CA.CO_NUM AND P.PLINE_NUM = CA.PLINE_NUM
@@ -108,10 +110,11 @@ erp_query = """(
                 FROM PRELUDE.DBO.WHSE_STAT_IJO WS
                 WHERE WS.CO_NUM = '001' 
                     AND CAST(WS.ONHAND AS FLOAT) <> '0'
-                ) V ON WS.WHSE_NUM = V.WHSE_NUM AND WS.PROD_NUM = V.PROD_NUM
+            ) V ON WS.WHSE_NUM = V.WHSE_NUM AND WS.PROD_NUM = V.PROD_NUM
     LEFT JOIN PRELUDE.DBO.PRD_VEND_IJO PV ON WS.CO_NUM = PV.CO_NUM AND V.VEND_NUM = PV.VEND_NUM AND WS.WHSE_NUM = PV.WHSE_NUM AND WS.PROD_NUM = PV.PROD_NUM
     WHERE CAST(WS.ONHAND AS FLOAT) <> '0' 
         AND WS.CO_NUM = '001'	
+        AND WS.WHSE_NUM NOT IN ('','13F')	
 )"""
 
 ss_df = spark.read.format("jdbc") \
@@ -139,17 +142,17 @@ conn = pg8000.connect(
     port=5432
 )
 
-query = "select warehouse.upsert_fweps_inventory_position_interim()"
+query = "select warehouse.upsert_aqua_inventory_position_interim()"
 cur = conn.cursor()
 cur.execute(query)
 conn.commit()
 cur.close()
 
-queryTwo = "select warehouse.load_fweps_inventory_position()"
-cur = conn.cursor()
-cur.execute(queryTwo)
-conn.commit()
-cur.close()
+# queryTwo = "select warehouse.load_fweps_inventory_position()"
+# cur = conn.cursor()
+# cur.execute(queryTwo)
+# conn.commit()
+# cur.close()
 
 conn.close()
 
