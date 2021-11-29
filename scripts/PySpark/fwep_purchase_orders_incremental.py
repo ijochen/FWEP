@@ -32,6 +32,7 @@ pep_url = "jdbc:sqlserver://10.0.10.18:1433;databaseName=Prelude"
 pep_query = """(
     select distinct --top(100)
         'PEP' as COMPANY,
+        'PRELUDE' AS ERP,
         ph.PO_TYPE,
         ph.PO_NUM,
         pl.SEQ_NUM,
@@ -120,7 +121,7 @@ pep_query = """(
                 else pl.WHSE_NUM end WHSE_NAME,		
         cast(ph.PO_DATE as date) PO_DATE,
         cast(ph.REC_DATE as date) REC_DATE,
-        case when pl.DEL_DATE = '0000-00-00' then '' else cast(pl.DEL_DATE as date) end DEL_DATE
+        case when pl.DEL_DATE = '0000-00-00' or pl.DEL_DATE = '1606-00-00' then '1900-01-01' else cast(pl.DEL_DATE as date) end DEL_DATE
     from Prelude.dbo.PO_HISTORY_LINE_IJO pl
     left join Prelude.dbo.PO_HISTORY_IJO ph on left(PL.ID, charindex('!',PL.ID)-1) = ph.ID
     left join Prelude.dbo.PRODUCT_IJO p on pl.PROD_NUM = p.PROD_NUM
@@ -165,6 +166,7 @@ fwp_url = "jdbc:sqlserver://128.1.100.9:1433;databaseName=CommerceCenter"
 fwp_query = """(
     select distinct --top(100)
         'FWP' as company,
+        'P21' as erp,  
         ph.po_type,         
         cast(ph.po_no as varchar) po_no,
         cast(pl.line_no as varchar) line_no,
