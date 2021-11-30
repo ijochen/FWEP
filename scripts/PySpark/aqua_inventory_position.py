@@ -148,11 +148,11 @@ cur.execute(query)
 conn.commit()
 cur.close()
 
-# queryTwo = "select warehouse.load_fweps_inventory_position()"
-# cur = conn.cursor()
-# cur.execute(queryTwo)
-# conn.commit()
-# cur.close()
+queryTwo = "select warehouse.load_aqua_inventory_position()"
+cur = conn.cursor()
+cur.execute(queryTwo)
+conn.commit()
+cur.close()
 
 conn.close()
 
