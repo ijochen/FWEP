@@ -62,10 +62,10 @@ BEGIN
                             extract(year from fpdm.received_date), 
                             extract(month from fpdm.received_date)
                         ) fpdm 
-                            on cast(ipi.location_id as text) = fpdm.location_id 
-                            and ipi.item_id = fpdm.prod_num 
-                            and extract(year from ipi.trans_date) = fpdm.year
-                            and extract(month from ipi.trans_date) = fpdm.month
+                            on cast(fipi.location_id as text) = fpdm.location_id 
+                            and fipi.item_id = fpdm.prod_num 
+                            and extract(year from fipi.trans_date) = fpdm.year
+                            and extract(month from fipi.trans_date) = fpdm.month
         )
         UNION
         (
