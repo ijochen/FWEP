@@ -79,7 +79,7 @@ begin
                 when branch_id = '098' then 'Warranty West Coast'
                 when branch_id = '099' then 'Warranty American'
                 when branch_id = '100' then 'Katy'
-                when branch_id = '110' then 'Austin (FWP)'
+                when branch_id = '110' then 'Austin (Georgetown)'
 				when branch_id = '115' then 'Austin (FWP)'
                 when branch_id = '120' then 'Plano'
                 when branch_id = '130' then 'San Antonio (FWP)'
