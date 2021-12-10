@@ -2,7 +2,8 @@
 --select version()
 --select sales.load_invoices()
 
---drop function sales.load_invoices
+
+--DROP FUNCTION sales.load_invoices()
 
 CREATE FUNCTION sales.load_invoices()  RETURNS void AS $$
 begin
@@ -277,3 +278,5 @@ begin
 END ;
 $$
 LANGUAGE plpgsql ;
+
+-- SELECT sales.load_invoices()
