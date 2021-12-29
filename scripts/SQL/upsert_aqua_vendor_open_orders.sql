@@ -1,3 +1,10 @@
+
+-- save the interim as the original file, incase we need to revert back, use the pristine table as the table for Tableau
+-- SELECT * INTO procurement.vendor_open_orders
+-- FROM procurement.vendor_open_orders_interim
+
+-- DROP FUNCTION procurement.upsert_aqua_vendor_open_orders()
+
 CREATE FUNCTION procurement.upsert_aqua_vendor_open_orders()  RETURNS void AS $$
 BEGIN
 	
@@ -15,3 +22,5 @@ BEGIN
 END ;
 $$
 LANGUAGE plpgsql ;
+
+-- SELECT procurement.upsert_aqua_vendor_open_orders()
