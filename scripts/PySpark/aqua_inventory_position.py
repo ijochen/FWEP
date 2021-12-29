@@ -130,6 +130,18 @@ properties = {"user": "postgres","password": "kHSmwnXWrG^L3N$V2PXPpY22*47","driv
 ss_df.write.jdbc(url=url, table="warehouse.pep_inventory_position_incremental", mode=mode, properties=properties)
 
 
+# # 3) Load Vendor Open Orders - Read from S3 file and write to Data Warehouse 
+
+# s3_df = spark.read.format("csv") \
+#    .option("header", "true") \
+#    .load("s3a://vendor-oo-bucket/open_orders_master.csv")
+
+# mode = "overwrite"
+# url = "jdbc:postgresql://db-cluster.cluster-ce0xsttrdwys.us-east-2.rds.amazonaws.com:5432/analytics"
+# properties = {"user": "postgres","password": "kHSmwnXWrG^L3N$V2PXPpY22*47","driver": "org.postgresql.Driver"}
+# s3_df.write.jdbc(url=url, table="procurement.vendor_open_orders_master", mode=mode, properties=properties)
+
+
 # 3) Merge tables together in a stored proc
 
 import pg8000

@@ -224,7 +224,21 @@ fwp_df.write.jdbc(url=url, table="procurement.fwp_purchase_orders_incremental", 
 
 logger.info("******** END READING FWP *************")
 
-# 3) Merge tables together in a stored proc
+
+# 3) Load Vendor Open Orders - Read from S3 file and write to Data Warehouse 
+
+s3_df = spark.read.format("csv") \
+   .option("header", "true") \
+   .load("s3a://vendor-oo-bucket/open_orders_master.csv")
+
+mode = "overwrite"
+url = "jdbc:postgresql://db-cluster.cluster-ce0xsttrdwys.us-east-2.rds.amazonaws.com:5432/analytics"
+properties = {"user": "postgres","password": "kHSmwnXWrG^L3N$V2PXPpY22*47","driver": "org.postgresql.Driver"}
+s3_df.write.jdbc(url=url, table="procurement.vendor_open_orders_master", mode=mode, properties=properties)
+
+
+
+# 4) Merge tables together in a stored proc
 import pg8000
 
 conn = pg8000.connect(
@@ -251,6 +265,12 @@ cur.close()
 queryThree = "select procurement.load_fwep_purchases()"
 cur = conn.cursor()
 cur.execute(queryThree)
+conn.commit()
+cur.close()
+
+queryFour = "select procurement.upsert_aqua_vendor_open_orders()"
+cur = conn.cursor()
+cur.execute(queryFour)
 conn.commit()
 cur.close()
 
