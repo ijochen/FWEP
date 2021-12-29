@@ -234,7 +234,7 @@ s3_df = spark.read.format("csv") \
 mode = "overwrite"
 url = "jdbc:postgresql://db-cluster.cluster-ce0xsttrdwys.us-east-2.rds.amazonaws.com:5432/analytics"
 properties = {"user": "postgres","password": "kHSmwnXWrG^L3N$V2PXPpY22*47","driver": "org.postgresql.Driver"}
-s3_df.write.jdbc(url=url, table="procurement.vendor_open_orders_master", mode=mode, properties=properties)
+s3_df.write.jdbc(url=url, table="procurement.aqua_vendor_open_orders_incremental", mode=mode, properties=properties)
 
 
 
