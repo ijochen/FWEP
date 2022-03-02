@@ -1,7 +1,7 @@
 
 -- save the interim as the original file, incase we need to revert back, use the pristine table as the table for Tableau
 -- SELECT * INTO procurement.aqua_vendor_open_orders
--- FROM procurement.vendor_open_orders_interim
+-- FROM procurement.aqua_vendor_open_orders_interim
 
 -- DROP FUNCTION procurement.upsert_aqua_vendor_open_orders()
 

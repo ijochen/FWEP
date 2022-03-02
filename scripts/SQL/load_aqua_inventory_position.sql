@@ -7,7 +7,9 @@ BEGIN
 
     CREATE TABLE warehouse.aqua_inventory_position AS
     SELECT * FROM 
-    (       
+    (   
+
+        --P21 FWP/APS/PEP INVENTORY   
         (
             SELECT 
                 erp
@@ -68,6 +70,8 @@ BEGIN
                             and extract(month from fipi.trans_date) = fpdm.month
         )
         UNION
+
+        --PRELUDE PEP INVENTORY
         (
             SELECT 
                 pipi.*
