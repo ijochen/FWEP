@@ -32,17 +32,6 @@ s3_df = spark.read.format("csv") \
    .option("header", "true") \
     .load("s3a://srs-bucket/HLSG_Inventory.csv")
 
-
-# erp_url = "jdbc:sqlserver://10.0.10.18:1433;databaseName=HLSGTest"
-# erp_driver = "com.microsoft.sqlserver.jdbc.SQLServerDriver"
-# s3_df.select("*").write.format("jdbc")\
-#     .mode("overwrite") \
-#     .option("url", erp_url)\
-#     .option("dbtable","dbo.staging_hlsg_inventory") \
-#     .option("user", "ichen") \
-#     .option("password", "Qwer1234$") \
-#     .save()
-
 mode = "overwrite"
 url = "jdbc:sqlserver://10.0.10.18:1433;databaseName=HLSGTest"
 properties = {"user": "ichen","password": "Qwer1234$","driver": "com.microsoft.sqlserver.jdbc.SQLServerDriver"}
@@ -51,26 +40,101 @@ s3_df.write.jdbc(url=url, table="staging_hlsg_inventory", mode=mode, properties=
 
 # 4) Merge tables together in a stored proc
 
+erp_url = "jdbc:sqlserver://10.0.10.18:1433;databaseName=HLSGTest"
+erp_query = """(
+    select distinct hi.*
+        , im.inv_mast_uid
+        , im.item_id
+        , item_desc
+        , im.default_selling_unit 
+    from HLSGTest.dbo.staging_hlsg_inventory hi
+    join P21Test.dbo.inv_mast im on hi.pepproductcd = im.item_id and hi.PEPUOM = im.default_selling_unit
+    where AGILITYUOM = PEPUOM
+)"""
 
-# dw-poc-dev spark test
-source_jdbc_conf = glueContext.extract_jdbc_conf('jdbc:sqlserver://10.0.10.18:1433;databaseName=HLSGTest')
+ss_df = spark.read.format("jdbc") \
+   .option("url", erp_url) \
+   .option("query", erp_query) \
+   .option("user", "ichen") \
+   .option("password", "Qwer1234$") \
+   .load()
 
-from py4j.java_gateway import java_import
-java_import(sc._gateway.jvm,"java.sql.Connection")
-java_import(sc._gateway.jvm,"java.sql.DatabaseMetaData")
-java_import(sc._gateway.jvm,"java.sql.DriverManager")
-java_import(sc._gateway.jvm,"java.sql.SQLException")
+mode = "overwrite"
+url = "jdbc:sqlserver://10.0.10.18:1433;databaseName=HLSGTest"
+properties = {"user": "ichen","password": "Qwer1234$","driver": "com.microsoft.sqlserver.jdbc.SQLServerDriver"}
+s3_df.write.jdbc(url=url, table="agility_p21_itemxref", mode=mode, properties=properties)
 
-conn = sc._gateway.jvm.DriverManager.getConnection(source_jdbc_conf.get('url'), source_jdbc_conf.get('user'), source_jdbc_conf.get('password'))
 
-print(conn.getMetaData().getDatabaseProductName())
+# import pg8000
 
-# call stored procedure, in this case I call sp_start_job
-cstmt = conn.prepareCall("{call master.dbo.hlsg_p21_test(?)}");
-cstmt.setString("job_name", "testjob");
-results = cstmt.execute();
+# conn = pg8000.connect(
+#     database='HLSGTest',
+#     user='ichen',
+#     password='Qwer1234$',
+#     host='10.0.10.18',
+#     port=1433
+# )
 
-conn.close()
+# query = "exec hlsg_p21_test()"
+# cur = conn.cursor()
+# cur.execute(query)
+# conn.commit()
+# cur.close()
+
+
+
+# glue_connection_name = 'HLSG Azure Test'
+# database_name = 'HLSGTest'
+# stored_proc = 'exec hlsg_p21_test()'
+
+# logger = glueContext.get_logger()
+    
+# logger.info('Getting details for connection ' + glue_connection_name)
+# source_jdbc_conf = glueContext.extract_jdbc_conf(glue_connection_name)
+    
+# from py4j.java_gateway import java_import
+# java_import(sc._gateway.jvm,"java.sql.Connection")
+# java_import(sc._gateway.jvm,"java.sql.DatabaseMetaData")
+# java_import(sc._gateway.jvm,"java.sql.DriverManager")
+# java_import(sc._gateway.jvm,"java.sql.SQLException")
+    
+# conn = sc._gateway.jvm.DriverManager.getConnection(source_jdbc_conf.get('url') + '/' + database_name, source_jdbc_conf.get('user'), source_jdbc_conf.get('password'))
+# logger.info('Connected to ' + conn.getMetaData().getDatabaseProductName() + ', ' + source_jdbc_conf.get('url') + '/' + database_name)
+    
+# stmt = conn.createStatement();
+# rs = stmt.executeUpdate('call ' + stored_proc);
+    
+# logger.info("Finished")
+
+
+
+# # dw-poc-dev spark test
+# source_jdbc_conf = glueContext.extract_jdbc_conf('jdbc:sqlserver://10.0.10.18:1433;databaseName=HLSGTest')
+
+# from py4j.java_gateway import java_import
+# java_import(sc._gateway.jvm,"java.sql.Connection")
+# java_import(sc._gateway.jvm,"java.sql.DatabaseMetaData")
+# java_import(sc._gateway.jvm,"java.sql.DriverManager")
+# java_import(sc._gateway.jvm,"java.sql.SQLException")
+
+# conn = sc._gateway.jvm.DriverManager.getConnection(source_jdbc_conf.get('url'), source_jdbc_conf.get('user'), source_jdbc_conf.get('password'))
+
+# print(conn.getMetaData().getDatabaseProductName())
+
+# # call stored procedure, in this case I call sp_start_job
+# cstmt = conn.prepareCall("{call master.dbo.hlsg_p21_test(?)}");
+# cstmt.setString("job_name", "testjob");
+# results = cstmt.execute();
+
+# conn.close()
+
+
+
+# erp_url = "jdbc:sqlserver://10.0.10.18:1433;databaseName=HLSGTest"
+# erp_query = """(
+#     exec hlsg_p21_test
+# )"""
+
 
 
 
