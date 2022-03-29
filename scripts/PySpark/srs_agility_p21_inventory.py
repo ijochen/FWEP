@@ -5,7 +5,9 @@ from pyspark.context import SparkContext
 from awsglue.context import GlueContext
 from pyspark.sql import SQLContext
 from awsglue.job import Job
+#import _mssql
 import logging
+
 
 MSG_FORMAT = '%(asctime)s %(levelname)s %(name)s: %(message)s'
 DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S'
@@ -38,23 +40,21 @@ properties = {"user": "ichen","password": "Qwer1234$","driver": "com.microsoft.s
 s3_df.write.jdbc(url=url, table="staging_hlsg_inventory", mode=mode, properties=properties)
 
 
-# 4) Merge tables together in a stored proc
+# 2) Fetch Item Data from P21 
 
-erp_url = "jdbc:sqlserver://10.0.10.18:1433;databaseName=HLSGTest"
-erp_query = """(
-    select distinct hi.*
-        , im.inv_mast_uid
-        , im.item_id
+p21_url = "jdbc:sqlserver://10.0.10.18:1433;databaseName=P21Test"
+p21_query = """(
+    select distinct 
+        im.inv_mast_uid
+        , im.item_id 
         , item_desc
         , im.default_selling_unit 
-    from HLSGTest.dbo.staging_hlsg_inventory hi
-    join P21Test.dbo.inv_mast im on hi.pepproductcd = im.item_id and hi.PEPUOM = im.default_selling_unit
-    where AGILITYUOM = PEPUOM
+    from P21Test.dbo.inv_mast im
 )"""
 
-ss_df = spark.read.format("jdbc") \
-   .option("url", erp_url) \
-   .option("query", erp_query) \
+p21_item_df = spark.read.format("jdbc") \
+   .option("url", p21_url) \
+   .option("query", p21_query) \
    .option("user", "ichen") \
    .option("password", "Qwer1234$") \
    .load()
@@ -62,7 +62,53 @@ ss_df = spark.read.format("jdbc") \
 mode = "overwrite"
 url = "jdbc:sqlserver://10.0.10.18:1433;databaseName=HLSGTest"
 properties = {"user": "ichen","password": "Qwer1234$","driver": "com.microsoft.sqlserver.jdbc.SQLServerDriver"}
-s3_df.write.jdbc(url=url, table="agility_p21_itemxref", mode=mode, properties=properties)
+p21_item_df.write.jdbc(url=url, table="p21_item_data", mode=mode, properties=properties)
+
+
+item_ref_df = s3_df \
+    .join(p21_item_df, \
+        (s3_df.P21ITEM == p21_item_df.item_id) & \
+        (s3_df.P21UOM == p21_item_df.default_selling_unit)\    
+    .select( \
+        s3_df["*"], \
+        p21_item_df["*"], \
+    )
+
+mode = "overwrite"
+url = "jdbc:sqlserver://10.0.10.18:1433;databaseName=HLSGTest"
+properties = {"user": "ichen","password": "Qwer1234$","driver": "com.microsoft.sqlserver.jdbc.SQLServerDriver"}
+item_ref_df.write.jdbc(url=url, table="agility_p21_itemxref", mode=mode, properties=properties)    
+
+# 2) Call Stored Proc in P21 MSSQL to create the cross ref table between Agility Product Codes and P21 Product Codes to get Inv Mast Uid to then Update the Inv_Loc Table
+
+
+
+
+# 4) Merge tables together in a stored proc
+
+# erp_url = "jdbc:sqlserver://10.0.10.18:1433;databaseName=HLSGTest"
+# erp_query = """(
+#     select distinct hi.*
+#         , im.inv_mast_uid
+#         , im.item_id
+#         , item_desc
+#         , im.default_selling_unit 
+#     from HLSGTest.dbo.staging_hlsg_inventory hi
+#     join P21Test.dbo.inv_mast im on hi.pepproductcd = im.item_id and hi.PEPUOM = im.default_selling_unit
+#     where AGILITYUOM = PEPUOM
+# )"""
+
+# ss_df = spark.read.format("jdbc") \
+#    .option("url", erp_url) \
+#    .option("query", erp_query) \
+#    .option("user", "ichen") \
+#    .option("password", "Qwer1234$") \
+#    .load()
+
+# mode = "overwrite"
+# url = "jdbc:sqlserver://10.0.10.18:1433;databaseName=HLSGTest"
+# properties = {"user": "ichen","password": "Qwer1234$","driver": "com.microsoft.sqlserver.jdbc.SQLServerDriver"}
+# s3_df.write.jdbc(url=url, table="agility_p21_itemxref", mode=mode, properties=properties)
 
 
 # import pg8000
