@@ -3,7 +3,6 @@ from awsglue.transforms import *
 from awsglue.utils import getResolvedOptions
 from pyspark.context import SparkContext
 from awsglue.context import GlueContext
-from pyspark.sql import SQLContext
 from awsglue.job import Job
 #import _mssql
 import logging
@@ -42,6 +41,7 @@ s3_df.write.jdbc(url=url, table="staging_hlsg_inventory", mode=mode, properties=
 
 # 2) Fetch Item Data from P21 
 
+## Dataframe of P21 Items 
 p21_url = "jdbc:sqlserver://10.0.10.18:1433;databaseName=P21Test"
 p21_query = """(
     select distinct 
@@ -64,22 +64,24 @@ url = "jdbc:sqlserver://10.0.10.18:1433;databaseName=HLSGTest"
 properties = {"user": "ichen","password": "Qwer1234$","driver": "com.microsoft.sqlserver.jdbc.SQLServerDriver"}
 p21_item_df.write.jdbc(url=url, table="p21_item_data", mode=mode, properties=properties)
 
-
+## Create joined dataframe of all the Agility Items and P21 Items as a Cross Reference to Update the Quantities
 item_ref_df = s3_df \
     .join(p21_item_df, \
         (s3_df.P21ITEM == p21_item_df.item_id) & \
-        (s3_df.P21UOM == p21_item_df.default_selling_unit)\    
+        (s3_df.P21UOM == p21_item_df.default_selling_unit)   
+    ) \
     .select( \
         s3_df["*"], \
-        p21_item_df["*"], \
+        p21_item_df["*"]
     )
+
 
 mode = "overwrite"
 url = "jdbc:sqlserver://10.0.10.18:1433;databaseName=HLSGTest"
 properties = {"user": "ichen","password": "Qwer1234$","driver": "com.microsoft.sqlserver.jdbc.SQLServerDriver"}
 item_ref_df.write.jdbc(url=url, table="agility_p21_itemxref", mode=mode, properties=properties)    
 
-# 2) Call Stored Proc in P21 MSSQL to create the cross ref table between Agility Product Codes and P21 Product Codes to get Inv Mast Uid to then Update the Inv_Loc Table
+# 3) Call Stored Proc in P21 MSSQL to create the cross ref table between Agility Product Codes and P21 Product Codes to get Inv Mast Uid to then Update the Inv_Loc Table
 
 
 
@@ -109,23 +111,6 @@ item_ref_df.write.jdbc(url=url, table="agility_p21_itemxref", mode=mode, propert
 # url = "jdbc:sqlserver://10.0.10.18:1433;databaseName=HLSGTest"
 # properties = {"user": "ichen","password": "Qwer1234$","driver": "com.microsoft.sqlserver.jdbc.SQLServerDriver"}
 # s3_df.write.jdbc(url=url, table="agility_p21_itemxref", mode=mode, properties=properties)
-
-
-# import pg8000
-
-# conn = pg8000.connect(
-#     database='HLSGTest',
-#     user='ichen',
-#     password='Qwer1234$',
-#     host='10.0.10.18',
-#     port=1433
-# )
-
-# query = "exec hlsg_p21_test()"
-# cur = conn.cursor()
-# cur.execute(query)
-# conn.commit()
-# cur.close()
 
 
 
