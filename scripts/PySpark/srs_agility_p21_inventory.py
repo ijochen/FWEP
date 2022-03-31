@@ -1,9 +1,15 @@
+
 import sys
 from awsglue.transforms import *
 from awsglue.utils import getResolvedOptions
-from pyspark.context import SparkContext
+from pyspark.context import SparkContext, SparkContext.write
+from pyspark.sql import SparkSession
 from awsglue.context import GlueContext
 from awsglue.job import Job
+#from ._pymssql import *
+#from ._pymssql import __version__, __full_version__
+#from pymssql import _mssql
+													
 #import _mssql
 import logging
 
@@ -83,34 +89,52 @@ item_ref_df.write.jdbc(url=url, table="agility_p21_itemxref", mode=mode, propert
 
 # 3) Call Stored Proc in P21 MSSQL to create the cross ref table between Agility Product Codes and P21 Product Codes to get Inv Mast Uid to then Update the Inv_Loc Table
 
+#conn = pymssql.connect(server = 'jdbc:sqlserver://10.0.10.18:1433;databaseName=HLSGTest', user = 'ichen', password = 'Qwer1234$', database = 'HLSGTest' )
+
+# 4) Generate Exception Report and Load to S3 bucket and use Matillion to send email attachment
+
+## Dataframe of P21 Items 
+p21_url = "jdbc:sqlserver://10.0.10.18:1433;databaseName=P21Test"
+p21_exc_report_query = """(
+    --ITEM NOT FOUND IN P21, SCRIPT FOR EXCEPTION REPORT
+        select 
+            hlsg.* 
+            , im.inv_mast_uid
+            , im.item_id 
+            , item_desc
+            , im.default_selling_unit 
+        from HLSGTest.dbo.staging_hlsg_inventory hlsg
+        left join P21Test.dbo.inv_mast im on hlsg.P21ITEM = im.item_id
+        where item_id is null
+        union 
+
+    --ITEMS WHERE UOM ARE ALL MISMATCHING
+        select 
+            hlsg.* 
+            , im.inv_mast_uid
+            , im.item_id 
+            , item_desc
+            , im.default_selling_unit 
+        from HLSGTest.dbo.staging_hlsg_inventory hlsg
+        left join P21Test.dbo.inv_mast im on hlsg.P21ITEM = im.item_id
+        where item_id is null or AGILITYUOM <> P21UOM or P21UOM <> im.default_selling_unit
+)"""
+
+p21_exc_report_df = spark.read.format("jdbc") \
+   .option("url", p21_url) \
+   .option("query", p21_exc_report_query) \
+   .option("user", "ichen") \
+   .option("password", "Qwer1234$") \
+   .load()
+
+
+p21_exc_report_df = spark.write.format("csv") \
+    .mode("overwrite") \
+    .save("s3a://srs-bucket/HLSG_P21_B2B_Exception_Report.csv")
 
 
 
 # 4) Merge tables together in a stored proc
-
-# erp_url = "jdbc:sqlserver://10.0.10.18:1433;databaseName=HLSGTest"
-# erp_query = """(
-#     select distinct hi.*
-#         , im.inv_mast_uid
-#         , im.item_id
-#         , item_desc
-#         , im.default_selling_unit 
-#     from HLSGTest.dbo.staging_hlsg_inventory hi
-#     join P21Test.dbo.inv_mast im on hi.pepproductcd = im.item_id and hi.PEPUOM = im.default_selling_unit
-#     where AGILITYUOM = PEPUOM
-# )"""
-
-# ss_df = spark.read.format("jdbc") \
-#    .option("url", erp_url) \
-#    .option("query", erp_query) \
-#    .option("user", "ichen") \
-#    .option("password", "Qwer1234$") \
-#    .load()
-
-# mode = "overwrite"
-# url = "jdbc:sqlserver://10.0.10.18:1433;databaseName=HLSGTest"
-# properties = {"user": "ichen","password": "Qwer1234$","driver": "com.microsoft.sqlserver.jdbc.SQLServerDriver"}
-# s3_df.write.jdbc(url=url, table="agility_p21_itemxref", mode=mode, properties=properties)
 
 
 
@@ -159,12 +183,6 @@ item_ref_df.write.jdbc(url=url, table="agility_p21_itemxref", mode=mode, propert
 
 # conn.close()
 
-
-
-# erp_url = "jdbc:sqlserver://10.0.10.18:1433;databaseName=HLSGTest"
-# erp_query = """(
-#     exec hlsg_p21_test
-# )"""
 
 
 
