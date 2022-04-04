@@ -2,15 +2,21 @@
 import sys
 from awsglue.transforms import *
 from awsglue.utils import getResolvedOptions
-from pyspark.context import SparkContext, SparkContext.write
+from pyspark.context import SparkContext
 from pyspark.sql import SparkSession
 from awsglue.context import GlueContext
 from awsglue.job import Job
+
+
+## Can't find module, the module from the external library isn't correct
+
 #from ._pymssql import *
 #from ._pymssql import __version__, __full_version__
-#from pymssql import _mssql
-													
+#from pymssql import _mssql										
 #import _mssql
+
+import cython
+
 import logging
 
 
@@ -28,6 +34,9 @@ args = getResolvedOptions(sys.argv, ['JOB_NAME'])
 sc = SparkContext()
 glueContext = GlueContext(sc)
 spark = glueContext.spark_session
+
+logger = glueContext.get_logger()
+
 job = Job(glueContext)
 job.init(args['JOB_NAME'], args)
 
@@ -65,10 +74,10 @@ p21_item_df = spark.read.format("jdbc") \
    .option("password", "Qwer1234$") \
    .load()
 
-mode = "overwrite"
-url = "jdbc:sqlserver://10.0.10.18:1433;databaseName=HLSGTest"
-properties = {"user": "ichen","password": "Qwer1234$","driver": "com.microsoft.sqlserver.jdbc.SQLServerDriver"}
-p21_item_df.write.jdbc(url=url, table="p21_item_data", mode=mode, properties=properties)
+# mode = "overwrite"
+# url = "jdbc:sqlserver://10.0.10.18:1433;databaseName=HLSGTest"
+# properties = {"user": "ichen","password": "Qwer1234$","driver": "com.microsoft.sqlserver.jdbc.SQLServerDriver"}
+# p21_item_df.write.jdbc(url=url, table="p21_item_data", mode=mode, properties=properties)
 
 ## Create joined dataframe of all the Agility Items and P21 Items as a Cross Reference to Update the Quantities
 item_ref_df = s3_df \
@@ -81,15 +90,17 @@ item_ref_df = s3_df \
         p21_item_df["*"]
     )
 
-
 mode = "overwrite"
 url = "jdbc:sqlserver://10.0.10.18:1433;databaseName=HLSGTest"
 properties = {"user": "ichen","password": "Qwer1234$","driver": "com.microsoft.sqlserver.jdbc.SQLServerDriver"}
 item_ref_df.write.jdbc(url=url, table="agility_p21_itemxref", mode=mode, properties=properties)    
 
-# 3) Call Stored Proc in P21 MSSQL to create the cross ref table between Agility Product Codes and P21 Product Codes to get Inv Mast Uid to then Update the Inv_Loc Table
+# 3) Run SQL Job to execute Stored Proc in P21 MSSQL to create the cross ref table between Agility Product Codes and P21 Product Codes to get Inv Mast Uid to then Update the Inv_Loc Table
 
 #conn = pymssql.connect(server = 'jdbc:sqlserver://10.0.10.18:1433;databaseName=HLSGTest', user = 'ichen', password = 'Qwer1234$', database = 'HLSGTest' )
+
+#source_jdbc_conf = glueContext.extract_jdbc_conf('HLSG Azure Test')
+
 
 # 4) Generate Exception Report and Load to S3 bucket and use Matillion to send email attachment
 
@@ -128,61 +139,55 @@ p21_exc_report_df = spark.read.format("jdbc") \
    .load()
 
 
-p21_exc_report_df = spark.write.format("csv") \
+p21_exc_report_df.coalesce(1)\
+    .write.format("csv") \
     .mode("overwrite") \
-    .save("s3a://srs-bucket/HLSG_P21_B2B_Exception_Report.csv")
+    .option("header", "true") \
+    .save("s3a://srs-bucket/reports")
+ 
+    
+import boto3
 
+s3 = boto3.resource('s3')
+
+source_bucket = 'srs-bucket'
+srcPrefix = 'srs-bucket/reports/'
+
+
+
+# try:
+#     client = boto3.client('s3')
+    
+#     ## Get a list of files with prefix (we know there will be only one file)
+    
+#     response = client.list_objects(
+#         Bucket = source_bucket,
+#         Prefix = srcPrefix
+#     )
+#     name = response["Contents"][0]["Key"]
+
+# print(name)
+
+#     ## Store Target File File Prefix, this is the new name of the file
+#     target_source = {'Bucket': source_bucket, 'Key': name}
+#     print(target_source)
+    
+#     target_key = srcPrefix + 'HLSG_P21_B2B_Exception_Report'
+    
+#     print(target_key)
+    
+#     ### Now Copy the file with New Name
+#     client.copy(CopySource=target_source, Bucket=source_bucket, Key=target_key)
+    
+#     ### Delete the old file
+#     client.delete_object(Bucket=source_bucket, Key=name)
+    
+# except Exception as e:
+#         ## do nothing
+#         print('error occured')
 
 
 # 4) Merge tables together in a stored proc
-
-
-
-# glue_connection_name = 'HLSG Azure Test'
-# database_name = 'HLSGTest'
-# stored_proc = 'exec hlsg_p21_test()'
-
-# logger = glueContext.get_logger()
-    
-# logger.info('Getting details for connection ' + glue_connection_name)
-# source_jdbc_conf = glueContext.extract_jdbc_conf(glue_connection_name)
-    
-# from py4j.java_gateway import java_import
-# java_import(sc._gateway.jvm,"java.sql.Connection")
-# java_import(sc._gateway.jvm,"java.sql.DatabaseMetaData")
-# java_import(sc._gateway.jvm,"java.sql.DriverManager")
-# java_import(sc._gateway.jvm,"java.sql.SQLException")
-    
-# conn = sc._gateway.jvm.DriverManager.getConnection(source_jdbc_conf.get('url') + '/' + database_name, source_jdbc_conf.get('user'), source_jdbc_conf.get('password'))
-# logger.info('Connected to ' + conn.getMetaData().getDatabaseProductName() + ', ' + source_jdbc_conf.get('url') + '/' + database_name)
-    
-# stmt = conn.createStatement();
-# rs = stmt.executeUpdate('call ' + stored_proc);
-    
-# logger.info("Finished")
-
-
-
-# # dw-poc-dev spark test
-# source_jdbc_conf = glueContext.extract_jdbc_conf('jdbc:sqlserver://10.0.10.18:1433;databaseName=HLSGTest')
-
-# from py4j.java_gateway import java_import
-# java_import(sc._gateway.jvm,"java.sql.Connection")
-# java_import(sc._gateway.jvm,"java.sql.DatabaseMetaData")
-# java_import(sc._gateway.jvm,"java.sql.DriverManager")
-# java_import(sc._gateway.jvm,"java.sql.SQLException")
-
-# conn = sc._gateway.jvm.DriverManager.getConnection(source_jdbc_conf.get('url'), source_jdbc_conf.get('user'), source_jdbc_conf.get('password'))
-
-# print(conn.getMetaData().getDatabaseProductName())
-
-# # call stored procedure, in this case I call sp_start_job
-# cstmt = conn.prepareCall("{call master.dbo.hlsg_p21_test(?)}");
-# cstmt.setString("job_name", "testjob");
-# results = cstmt.execute();
-
-# conn.close()
-
 
 
 
